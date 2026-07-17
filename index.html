@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Production Dashboard | รายงานรายเดือน ปี 2569</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f7fa;--bg2:#ffffff;--bg3:#f1f3f5;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.15);
+  --text:#111827;--muted:#6b7280;
+  --blue:#3b82f6;--green:#10b981;--amber:#f59e0b;
+  --purple:#8b5cf6;--teal:#14b8a6;--coral:#f97316;--red:#ef4444;
+}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.h-info{margin-left:12px}
+.h-title{font-size:15px;font-weight:600}
+.h-sub{font-size:11px;color:var(--muted)}
+.tab-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;display:flex;gap:4px;overflow-x:auto}
+.tab{padding:12px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;font-family:'Sarabun',sans-serif;background:none;border-top:none;border-left:none;border-right:none}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.page{display:none;padding:22px 28px}
+.page.active{display:block}
+.slabel{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.slabel::after{content:'';flex:1;height:1px;background:var(--border)}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:15px 17px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;background:var(--c,var(--blue))}
+.kpi-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:500}
+.kpi-val{font-size:21px;font-weight:700;margin:5px 0 3px}
+.kpi-sub{font-size:11px;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-top:5px}
+.b-g{background:rgba(16,185,129,.15);color:var(--green)}
+.b-a{background:rgba(245,158,11,.15);color:var(--amber)}
+.b-r{background:rgba(239,68,68,.15);color:var(--red)}
+.b-p{background:rgba(139,92,246,.15);color:var(--purple)}
+.b-t{background:rgba(20,184,166,.15);color:var(--teal)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px}
+.card-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:600}
+.card-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.ctag{font-size:10px;padding:3px 8px;border-radius:6px;background:rgba(59,130,246,.15);color:var(--blue);white-space:nowrap}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:8px 11px;text-align:left;border-bottom:1px solid var(--border);font-weight:500}
+td{padding:9px 11px;font-size:12px;border-bottom:1px solid rgba(0,0,0,0.06);vertical-align:middle}
+tr:hover td{background:rgba(0,0,0,0.03)}
+.bw{display:flex;align-items:center;gap:7px}
+.bt{flex:1;height:5px;background:rgba(0,0,0,0.08);border-radius:3px;overflow:hidden}
+.bf{height:100%;border-radius:3px}
+.pill{padding:2px 9px;border-radius:10px;font-size:10px;font-weight:600}
+.p-g{background:rgba(16,185,129,.15);color:var(--green)}
+.p-a{background:rgba(245,158,11,.15);color:var(--amber)}
+.p-r{background:rgba(239,68,68,.15);color:var(--red)}
+.p-p{background:rgba(139,92,246,.15);color:var(--purple)}
+.ins-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.ins-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--c,var(--blue));border-radius:12px;padding:14px 15px}
+.ins-icon{font-size:16px;margin-bottom:6px}
+.ins-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.ins-body{font-size:11px;color:var(--muted);line-height:1.6}
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr)}.g2,.g3{grid-template-columns:1fr}.ins-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center">
+    <div class="logo">📊</div>
+    <div class="h-info">
+      <div class="h-title">Production Dashboard — รายเดือน ปี 2569</div>
+      <div class="h-sub">ฝ่ายปฏิบัติการ</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:var(--muted)">มกราคม – มิถุนายน 2569</div>
+</div>
+
+<div class="tab-bar" id="tabBar"></div>
+<div id="pages"></div>
+
+<script>
+const gc='rgba(0,0,0,0.06)',tc='#6b7280';
+Chart.defaults.color=tc;
+Chart.defaults.font.family='Sarabun';
+const tip={backgroundColor:'#ffffff',borderColor:'rgba(0,0,0,0.15)',borderWidth:1,titleColor:'#111827',bodyColor:'#6b7280',padding:10};
+
+// ===== DATA =====
+const MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน'];
+const PRODS  = ['คอนกรีตผสมเสร็จ','ท่อระบายน้ำ','เสาเข็ม','แผ่นพื้น','รั้วสำเร็จรูป','อื่นๆ','แผ่นทางเท้า'];
+const PROD_COLORS = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#14b8a6','#ef4444','#f97316'];
+const PLANT_COLORS = ['#3b82f6','#10b981','#8b5cf6','#f59e0b'];
+const CAP_PROD = [19700,8375,3540,3760,460,460,600];
+const TOTAL_CAP = 36895;
+const PLANT_CAP = [13800,17855,1540,3000];
+
+const ACT_PROD = [
+  [6665, 4971.34, 901.06, 1403.89, 412, 58.9, 12.45],     // มกราคม
+  [5311.8, 5446.2, 817.62, 1196.14, 415.3, 113.31, 17.2],  // กุมภาพันธ์
+  [5696.45, 5356.14, 1349.74, 1423.36, 459.55, 81.39, 45.75], // มีนาคม
+  [5410, 3522.28, 1114.27, 1119.25, 372.8, 11.28, 30.1],   // เมษายน
+  [5387.5, 5219.34, 1140.5, 1497.12, 538.4, 44.5, 70.8],   // พฤษภาคม
+  [5176.23, 4702.92, 981.14, 1498.74, 543.1, 109.57, 83.15], // มิถุนายน
+];
+
+const TOTAL_ACT = [14424.64, 13317.57, 14412.38, 11579.98, 13898.16, 13094.85];
+
+const PLANT_ACT = [
+  [6613.5, 6639.89, 847, 324.25],    // มกราคม
+  [5256.8, 7097.64, 611.5, 351.63],  // กุมภาพันธ์
+  [5693.45, 7161.6, 897, 660.33],    // มีนาคม
+  [5313, 4950.06, 727.5, 589.42],    // เมษายน
+  [5326.5, 7197.64, 842.5, 531.52],  // พฤษภาคม
+  [5095.4, 6798.67, 770, 430.78],    // มิถุนายน
+];
+
+const TABLE_ROWS = [
+  [ // มกราคม
+    ['พัทยา — P1', 9600, 4112, 'หยุด 4 วันต้นเดือน (วันหยุดปีใหม่)'],
+    ['พัทยา — P2', 4200, 2501.5, 'เดินเครื่องต่อเนื่อง'],
+    ['นาวัง — โรงท่อ 1', 2400, 1852.6, 'ผลิตดี'],
+    ['นาวัง — โรงท่อ 2', 3000, 2047, 'ผลิตปกติ'],
+    ['นาวัง — โรงท่อ 3', 2400, 780.54, 'ผลิตต่ำกว่ากำลัง'],
+    ['นาวัง — แพล้นท์ 5', 10155, 1947.3, 'Utilization ต่ำ มีกำลังเหลือมาก'],
+    ['นาวัง — โรงแผ่นทางเท้า', 600, 12.45, 'ผลิตน้อยมาก'],
+    ['หนองปรือ — เสาเข็ม', 1540, 847, 'ผลิตปกติ'],
+    ['ปทุมธานี — แผ่นพื้น', 1000, 270.19, 'ผลิตต่ำกว่ากำลัง'],
+    ['ปทุมธานี — เสาเข็ม', 2000, 54.06, 'ผลิตน้อยมาก เพิ่ง Startup'],
+  ],
+  [ // กุมภาพันธ์
+    ['พัทยา — P1', 9600, 3135.75, 'ผลิตต่ำกว่ากำลัง'],
+    ['พัทยา — P2', 4200, 2121.05, 'ผลิตปกติ'],
+    ['นาวัง — โรงท่อ 1', 2400, 2216.4, 'ผลิตดีมาก ใกล้เต็มกำลัง'],
+    ['นาวัง — โรงท่อ 2', 3000, 2261, 'ผลิตดี'],
+    ['นาวัง — โรงท่อ 3', 2400, 741.31, 'ผลิตต่ำกว่ากำลัง'],
+    ['นาวัง — แพล้นท์ 5', 10155, 1861.73, 'Utilization ต่ำ'],
+    ['นาวัง — โรงแผ่นทางเท้า', 600, 17.2, 'ผลิตน้อยมาก'],
+    ['หนองปรือ — เสาเข็ม', 1540, 611.5, 'ผลิตปกติ'],
+    ['ปทุมธานี — แผ่นพื้น', 1000, 145.51, 'ผลิตต่ำมาก'],
+    ['ปทุมธานี — เสาเข็ม', 2000, 206.12, 'ผลิตต่ำ'],
+  ],
+  [ // มีนาคม
+    ['พัทยา — P1', 9600, 3728.9, 'ผลิตต่ำกว่ากำลัง'],
+    ['พัทยา — P2', 4200, 1964.55, 'ผลิตปกติ'],
+    ['นาวัง — โรงท่อ 1', 2400, 1675.1, 'ผลิตดี'],
+    ['นาวัง — โรงท่อ 2', 3000, 2464, 'ผลิตดีมาก'],
+    ['นาวัง — โรงท่อ 3', 2400, 885.58, 'ผลิตต่ำกว่ากำลัง'],
+    ['นาวัง — แพล้นท์ 5', 10155, 2091.17, 'Utilization ต่ำ'],
+    ['นาวัง — โรงแผ่นทางเท้า', 600, 45.75, 'ผลิตน้อย เพิ่มขึ้นจากเดือนก่อน'],
+    ['หนองปรือ — เสาเข็ม', 1540, 897, 'ผลิตดี'],
+    ['ปทุมธานี — แผ่นพื้น', 1000, 207.59, 'ผลิตต่ำ'],
+    ['ปทุมธานี — เสาเข็ม', 2000, 452.74, 'เพิ่มขึ้นชัดเจนจากเดือนก่อน'],
+  ],
+  [ // เมษายน
+    ['พัทยา — P1', 9600, 3517, 'ผลิตต่ำกว่ากำลัง'],
+    ['พัทยา — P2', 4200, 1796, 'ผลิตปกติ'],
+    ['นาวัง — โรงท่อ 1', 2400, 1630.7, 'ผลิตดี'],
+    ['นาวัง — โรงท่อ 2', 3000, 1239.45, 'ผลิตลดลงจากเดือนก่อนมาก'],
+    ['นาวัง — โรงท่อ 3', 2400, 447.81, 'ผลิตต่ำมาก'],
+    ['นาวัง — แพล้นท์ 5', 10155, 1602, 'Utilization ต่ำ'],
+    ['นาวัง — โรงแผ่นทางเท้า', 600, 30.1, 'ผลิตน้อย'],
+    ['หนองปรือ — เสาเข็ม', 1540, 727.5, 'ผลิตปกติ'],
+    ['ปทุมธานี — แผ่นพื้น', 1000, 202.65, 'ผลิตต่ำ'],
+    ['ปทุมธานี — เสาเข็ม', 2000, 386.77, 'ผลิตปกติ'],
+  ],
+  [ // พฤษภาคม
+    ['พัทยา — P1', 9600, 3297.25, 'ผลิตต่ำกว่ากำลัง'],
+    ['พัทยา — P2', 4200, 2029.25, 'ผลิตปกติ'],
+    ['นาวัง — โรงท่อ 1', 2400, 1718.8, 'ผลิตดี'],
+    ['นาวัง — โรงท่อ 2', 3000, 2402.55, 'ผลิตดีมาก ฟื้นตัวจากเมษายน'],
+    ['นาวัง — โรงท่อ 3', 2400, 848.14, 'ผลิตต่ำกว่ากำลัง'],
+    ['นาวัง — แพล้นท์ 5', 10155, 2157.35, 'Utilization ต่ำ'],
+    ['นาวัง — โรงแผ่นทางเท้า', 600, 70.8, 'ผลิตปานกลาง สูงขึ้นต่อเนื่อง'],
+    ['หนองปรือ — เสาเข็ม', 1540, 842.5, 'ผลิตดี'],
+    ['ปทุมธานี — แผ่นพื้น', 1000, 233.52, 'ผลิตต่ำ'],
+    ['ปทุมธานี — เสาเข็ม', 2000, 298, 'ผลิตต่ำมาก'],
+  ],
+  [ // มิถุนายน
+    ['พัทยา — P1', 9600, 3200.2, 'ผลิตต่ำกว่ากำลัง'],
+    ['พัทยา — P2', 4200, 1895.2, 'ผลิตปกติ'],
+    ['นาวัง — โรงท่อ 1', 2400, 1840.5, 'ผลิตดี'],
+    ['นาวัง — โรงท่อ 2', 3000, 2147.4, 'ผลิตดี'],
+    ['นาวัง — โรงท่อ 3', 2400, 569.42, 'ผลิตต่ำกว่ากำลัง'],
+    ['นาวัง — แพล้นท์ 5', 10155, 2158.2, 'Utilization ต่ำ มีกำลังเหลือมาก'],
+    ['นาวัง — โรงแผ่นทางเท้า', 600, 83.15, 'ผลิตน้อย เพิ่มขึ้นจากเดือนก่อน'],
+    ['หนองปรือ — เสาเข็ม', 1540, 770, 'ผลิตดี'],
+    ['ปทุมธานี — แผ่นพื้น', 1000, 219.64, 'ผลิตต่ำ'],
+    ['ปทุมธานี — เสาเข็ม', 2000, 211.14, 'ผลิตต่ำมาก ต่ำสุดใน H1'],
+  ],
+];
+
+const DAILY = [
+  { // มกราคม
+    days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
+    p1:[0,0,0,0,62.75,0,94,202.25,0,136,131.5,176,143.5,149.25,125,240,109,0,109.75,240,184.5,132.75,327.75,179,243,134.5,244,62.5,201.75,276.5,206.75],
+    p2:[0,0,0,0,25,176.25,55,184.25,253,120.5,0,89,0,152,97.5,46,98.5,31.75,70,119,110.75,71,6,126,17.5,171.5,78.5,215,98,0,89.5]
+  },
+  { // กุมภาพันธ์
+    days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28],
+    p1:[146,35,208.25,193.5,0,167,133,96,125,197.25,86.5,162.75,206.25,211.75,198.5,106.5,126.5,82,75.5,98.5,112.75,0,53,15.5,24,0,134.75,140],
+    p2:[165.25,90,113.25,107.25,323.5,89,0,0,121.25,54,74.5,102.75,0,41.5,39,0,43,40,4,71.5,76,54.8,80,89.5,123,140.75,0,77.25]
+  },
+  { // มีนาคม
+    days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
+    p1:[109.75,47.5,122.5,54.5,66.75,166.25,196.25,0,95.25,82.5,164.25,119.75,89,72.5,66.5,105.5,214.75,229.55,158.75,171.35,227.75,0,144,49,129,0,146.5,242.75,179.25,84,193.5],
+    p2:[0,71,91.25,104.25,118.5,0,0,141,73.5,110.35,104.75,49.5,39.75,145,0,82.25,0,0,32,0,0,91.25,99.25,143.25,86.75,251.7,44.5,0,0,46.75,38]
+  },
+  { // เมษายน
+    days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],
+    p1:[149.75,179.75,250.75,162,0,133.5,200,172,245,165,262,114.75,0,0,0,0,0,0,0,30.25,92.25,273,0,189.75,198,116.75,273.5,159.5,149.5,0],
+    p2:[84.5,169.25,100.5,0,89.25,77,76,161.5,0,157,115.5,59.25,0,0,0,0,0,0,0,54.5,37,0,172.75,0,0,0,30.5,106.5,72.75,232.25]
+  },
+  { // พฤษภาคม
+    days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
+    p1:[0,156.5,0,268.75,148.75,109.75,41,151,64.5,140.75,91.25,34.5,60.75,64.5,255.5,174.75,0,119.5,54.25,91.5,156.25,35.75,121.5,151.75,113.25,95.5,103,175,98.5,98.25,121],
+    p2:[0,83,156.25,15,20,68.5,128.75,41.5,44.5,0,64,39,47,121.5,0,60,192.5,88.75,37,147.75,72,99,71.5,0,80.75,31,104.5,106,99.75,9.75,0]
+  },
+  { // มิถุนายน
+    days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],
+    p1:[65,118,116.5,111.75,111.25,88,0,113.5,142,149.25,131.25,136.25,51,56.25,36.75,127.25,178.25,174.25,0,181.75,0,69.5,140.5,160.45,110.25,104.75,254.75,87.75,97.75,86.25],
+    p2:[143.5,81.7,79,66.25,83,71,143.25,87.75,85.5,111.25,58,91.5,162.75,0,118,68,86.75,20.75,168.75,0,40.5,63,60,5,0,0,0,0,0,0]
+  },
+];
+
+const INSIGHTS = [
+  [ // มกราคม
+    {c:'#3b82f6',icon:'📊',title:'ผลิตรวมเดือนแรก',body:'14,425 คิว | Util 39.1% — พัทยาและนาวังผลิตใกล้เคียงกัน (6,614 vs 6,640 คิว) ถือเป็นจุดเริ่มต้นที่ดี'},
+    {c:'#10b981',icon:'🏆',title:'รั้วสำเร็จรูป Util 89.6%',body:'412/460 คิว — สินค้า Top Performer เดือนนี้ Demand แข็งแกร่งตั้งแต่ต้นปี'},
+    {c:'#10b981',icon:'🔧',title:'โรงท่อ 1 Util 77%',body:'1,853/2,400 คิว — Line ที่มีประสิทธิภาพสูงสุดของนาวัง ท่อระบายน้ำรวม 4,971 คิว (Util 59%)'},
+    {c:'#ef4444',icon:'⚠️',title:'แผ่นทางเท้า & ปทุมธานีเสาเข็มต่ำมาก',body:'แผ่นทางเท้า Util 2.1% (12/600 คิว) | ปทุมธานีเสาเข็ม Util 3% (54/2,000 คิว) — ต้องหา Order เพิ่มเร่งด่วน'},
+    {c:'#8b5cf6',icon:'💡',title:'แพล้นท์ 5 ยังมีศักยภาพมาก',body:'Util 19.2% (1,947/10,155 คิว) — กำลังผลิตเหลืออีก 8,208 คิว/เดือน เป็นโอกาสขยาย Product Mix'},
+    {c:'#14b8a6',icon:'📈',title:'P2 ทำผลงานดีกว่า P1',body:'P2 Util 59.6% vs P1 42.8% — ความแตกต่างน่าติดตาม อาจมีปัจจัยด้าน Schedule หรือ Maintenance'},
+  ],
+  [ // กุมภาพันธ์
+    {c:'#ef4444',icon:'📉',title:'ผลิตรวมลดลง 7.7%',body:'13,318 คิว จากมกราคม 14,425 คิว — คอนกรีตผสมเสร็จลดมากสุด 1,353 คิว (-20%) P1 ลดเหลือ 33%'},
+    {c:'#10b981',icon:'🏆',title:'โรงท่อ 1 Util 92%',body:'2,216/2,400 คิว — ใกล้เต็มกำลัง! ท่อระบายน้ำรวม 5,446 คิว (Util 65%) สูงที่สุดใน H1'},
+    {c:'#10b981',icon:'✅',title:'รั้วสำเร็จรูป Util 90%',body:'415/460 คิว — ยังคงประสิทธิภาพสูงต่อเนื่องเป็นเดือนที่ 2 Demand รั้วยังแข็งแกร่ง'},
+    {c:'#3b82f6',icon:'🏭',title:'นาวังผลิตสูงสุด 7,098 คิว',body:'โรงท่อทั้ง 3 เส้นทำงานดี โรงท่อ 1 ใกล้เต็ม แพล้นท์ 5 ยังต่ำที่ 18% ควรหาสินค้าเพิ่ม'},
+    {c:'#ef4444',icon:'🔴',title:'ปทุมธานีแผ่นพื้น Util 15%',body:'145/1,000 คิว — ต่ำที่สุดในรอบ 2 เดือน อาจมีปัญหา Order หรือกำลังเครื่องจักร'},
+    {c:'#14b8a6',icon:'📊',title:'ท่อเป็น Backbone หลัก',body:'ท่อระบายน้ำ 5,446 คิว คิดเป็น 41% ของผลผลิตทั้งหมด สูงกว่าคอนกรีตผสมเสร็จที่ 5,312 คิว'},
+  ],
+  [ // มีนาคม
+    {c:'#10b981',icon:'📈',title:'ผลิตฟื้นตัว +8.2%',body:'14,412 คิว ใกล้เคียงมกราคม — เสาเข็มรวมเพิ่ม +532 คิว (+65%) ปทุมธานีเสาเข็มโดดเด่น +247 คิว'},
+    {c:'#10b981',icon:'🏆',title:'รั้วสำเร็จรูป Util 99.9%',body:'459.55/460 คิว — เกือบเต็มกำลังผลิต! Demand สูงต่อเนื่อง 3 เดือน ควรพิจารณาขยายกำลังผลิต'},
+    {c:'#10b981',icon:'🔧',title:'โรงท่อ 2 Util 82%',body:'2,464/3,000 คิว — Line ที่ดีที่สุดเดือนนี้ ฟื้นตัวจาก 75% เดือนก่อน'},
+    {c:'#8b5cf6',icon:'🌟',title:'นาวัง 7,162 คิว สูงสุดใน H1',body:'ทุก Line ในนาวังทำงานดี โดยรวม Util 40.1% เทียบกำลัง 17,855 คิว ยังมีโอกาสเพิ่มได้อีก'},
+    {c:'#f59e0b',icon:'⚠️',title:'แพล้นท์ 5 Util 21%',body:'2,091/10,155 คิว — ยังมีกำลังเหลืออีก 8,064 คิว ควรวางแผน Product Mix สำหรับแพล้นท์นี้'},
+    {c:'#ef4444',icon:'🔴',title:'ปทุมธานีแผ่นพื้น Util 21%',body:'208/1,000 คิว — ยังต้องเพิ่ม Order แผ่นพื้นจากพื้นที่ปทุมธานี มีกำลังเหลืออีก 792 คิว'},
+  ],
+  [ // เมษายน
+    {c:'#ef4444',icon:'📉',title:'ผลิตต่ำสุดใน H1 — ลด 19.7%',body:'11,580 คิว ลดจาก 14,412 คิว เดือนมีนาคม หลาย Line ชะลอพร้อมกัน ต้องวิเคราะห์สาเหตุ'},
+    {c:'#ef4444',icon:'🚨',title:'ท่อระบายน้ำตกฮวบ',body:'3,522 คิว Util 42% จาก 64% เดือนก่อน — โรงท่อ 2 ลดเหลือ 41% โรงท่อ 3 เหลือ 19% ต้องเร่งหาออเดอร์'},
+    {c:'#ef4444',icon:'🏭',title:'นาวัง 4,950 คิว ต่ำสุดใน H1',body:'ลด 30.9% จากมีนาคม — อาจมีการหยุดซ่อมบำรุงหรือ Demand ลด P1 พัทยาก็มี 7 วันหยุด (วันที่ 13-19)'},
+    {c:'#10b981',icon:'✅',title:'รั้วสำเร็จรูป Util 81%',body:'373/460 คิว — ยังสูงแม้ภาพรวมตกต่ำ แสดง Demand รั้วยังแข็งแกร่งและไม่ขึ้นกับปัจจัยเดียวกัน'},
+    {c:'#f59e0b',icon:'📊',title:'ปทุมธานีรวม 589 คิว',body:'ดีที่สุดในรอบ 4 เดือน — แผ่นพื้น 203 คิว + เสาเข็ม 387 คิว ปทุมธานีเป็น Line ที่เสถียรที่สุด'},
+    {c:'#14b8a6',icon:'🔍',title:'สัญญาณเตือน — ควรติดตาม',body:'หากเมษายนมีปัจจัยพิเศษ (หยุดซ่อม/หยุดสงกรานต์) คาดฟื้นตัวในพฤษภาคม หากไม่ฟื้น ต้องทบทวน Demand'},
+  ],
+  [ // พฤษภาคม
+    {c:'#10b981',icon:'📈',title:'ผลิตฟื้นตัว +20%',body:'13,898 คิว หลังจากเมษายนต่ำสุด — นาวังกลับมา 7,198 คิว โรงท่อ 2 ฟื้นจาก 41% เป็น 80%'},
+    {c:'#10b981',icon:'🚀',title:'รั้วสำเร็จรูป Util 117% — เกินกำลัง!',body:'538/460 คิว เกินกำลังผลิต! 3 เดือนติด (มี.ค.100%, เม.ย.81%, พ.ค.117%) ควรพิจารณาขยายไลน์รั้วด่วน'},
+    {c:'#10b981',icon:'🔧',title:'โรงท่อ 2 Util 80% ฟื้นตัวเต็มที่',body:'2,403/3,000 คิว กลับมาจาก 41% เดือนก่อน ท่อระบายน้ำรวม 5,219 คิว (Util 62%)'},
+    {c:'#f59e0b',icon:'📊',title:'แผ่นพื้นรวม 1,497 คิว',body:'Util 40% — ดีที่สุดใน H1 นาวัง 1,264 คิว + ปทุมธานี 234 คิว แสดงการเพิ่ม Demand อย่างชัดเจน'},
+    {c:'#ef4444',icon:'🔴',title:'ปทุมธานีเสาเข็ม Util 15%',body:'298/2,000 คิว — ยังต่ำมากต่อเนื่อง 5 เดือน ต้องเร่งหา Order เสาเข็มในพื้นที่ปทุมธานีและใกล้เคียง'},
+    {c:'#14b8a6',icon:'💡',title:'แนวโน้มเป็นบวก',body:'4 ใน 7 สินค้าเพิ่มขึ้น MoM รั้วและแผ่นพื้นโดดเด่น ควรมุ่งเพิ่ม Order คอนกรีตผสมเสร็จและเสาเข็ม'},
+  ],
+  [ // มิถุนายน
+    {c:'#ef4444',icon:'📉',title:'ผลิตลดลง 5.8%',body:'13,094.85 คิว จาก 13,898.16 คิว พ.ค. — ท่อระบายน้ำลดมากสุด 516.42 คิว (-9.9%) เสาเข็มลด 159.36 คิว (-14%)'},
+    {c:'#10b981',icon:'🏆',title:'รั้วสำเร็จรูป Util 118% — เกินกำลัง!',body:'543.1/460 คิว เกินกำลังต่อเนื่อง 2 เดือน (พ.ค.117%, มิ.ย.118%) สูงสุดในรอบ 6 เดือน ควรพิจารณาขยายไลน์'},
+    {c:'#f59e0b',icon:'🔧',title:'โรงท่อ 1+2 ยังแข็งแกร่ง',body:'Util 77%+72% รวม 3,987.9 คิว — ยังเป็น Backbone หลักของนาวัง คิดเป็น 30% ของผลผลิตรวม'},
+    {c:'#ef4444',icon:'🚨',title:'ปทุมธานีเสาเข็ม Util 11%',body:'211.14/2,000 คิว ต่ำสุดใน H1 (ขยับขึ้นเล็กน้อยจาก 189 คิว เดือนก่อน) ต้องเร่งหา Order เสาเข็มเพิ่ม มีกำลังเหลือ 1,788.86 คิว'},
+    {c:'#f59e0b',icon:'⚠️',title:'แพล้นท์ 5 Util 21%',body:'2,158.2/10,155 คิว — ยังมีกำลังเหลือมาก 7,996.8 คิว/เดือน เป็น Line ที่ใหญ่สุดของนาวังแต่ใช้น้อยสุด'},
+    {c:'#14b8a6',icon:'🔭',title:'มุมมอง H2 — กลยุทธ์ที่แนะนำ',body:'รั้วและท่อ = Demand สูง ควรรักษา | เสาเข็มปทุมธานี + แพล้นท์ 5 = ต้องเร่งเพิ่ม Order | ท่อระบายน้ำและเสาเข็มลดลง MoM ควรติดตามใกล้ชิด'},
+  ],
+];
+// ===== END DATA =====
+
+// ===== BUILD TABS =====
+const tabBar = document.getElementById('tabBar');
+const allBtn = document.createElement('button');
+allBtn.className = 'tab active';
+allBtn.textContent = 'ทั้งหมด';
+allBtn.onclick = () => switchTab('all', allBtn);
+tabBar.appendChild(allBtn);
+MONTHS.forEach((m,i) => {
+  const btn = document.createElement('button');
+  btn.className = 'tab';
+  btn.textContent = m;
+  btn.onclick = () => switchTab(i, btn);
+  tabBar.appendChild(btn);
+});
+
+// ===== BUILD PAGE-ALL =====
+const pagesEl = document.getElementById('pages');
+(function(){
+  const totalAll = Math.round(TOTAL_ACT.reduce((a,b)=>a+b,0)*100)/100;
+  const util = (totalAll/(TOTAL_CAP*6)*100).toFixed(1);
+  const cumProd = PRODS.map((_,pi)=>Math.round(ACT_PROD.reduce((s,mo)=>s+mo[pi],0)*100)/100);
+  const cumPlant = [0,1,2,3].map(pi=>Math.round(PLANT_ACT.reduce((s,mo)=>s+mo[pi],0)*100)/100);
+  const cumProdPcts = cumProd.map((v,i)=>Math.round(v/CAP_PROD[i]/6*100));
+  const bestProdIdx = cumProdPcts.indexOf(Math.max(...cumProdPcts));
+  const bestPlant = ['พัทยา','นาวัง','หนองปรือ','ปทุมธานี'][cumPlant.indexOf(Math.max(...cumPlant))];
+  const bestPlantVal = Math.max(...cumPlant);
+  const div = document.createElement('div');
+  div.className = 'page active';
+  div.id = 'page-all';
+  div.innerHTML = `
+    <div class="slabel">ภาพรวมทั้งหมด — มกราคม ถึง มิถุนายน 2569</div>
+    <div class="kpi-row">
+      <div class="kpi" style="--c:#3b82f6">
+        <div class="kpi-lbl">ผลิตจริงรวม 6 เดือน</div>
+        <div class="kpi-val">${totalAll.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+        <div class="kpi-sub">คิวคอนกรีต ม.ค.–มิ.ย.</div>
+        <span class="badge b-t">📅 6 เดือน</span>
+      </div>
+      <div class="kpi" style="--c:#10b981">
+        <div class="kpi-lbl">% Utilization เฉลี่ย</div>
+        <div class="kpi-val">${util}%</div>
+        <div class="kpi-sub">กำลังผลิตรวม ${(TOTAL_CAP*6).toLocaleString()} คิว</div>
+        <span class="badge ${parseFloat(util)>=40?'b-g':'b-a'}">${parseFloat(util)>=40?'✓ ดี':'⚠ ต่ำกว่าเป้า'}</span>
+      </div>
+      <div class="kpi" style="--c:#f59e0b">
+        <div class="kpi-lbl">โรงงานที่ผลิตสูงสุด</div>
+        <div class="kpi-val">${bestPlant}</div>
+        <div class="kpi-sub">${bestPlantVal.toLocaleString()} คิว รวม</div>
+        <span class="badge b-g">✓ Best Plant</span>
+      </div>
+      <div class="kpi" style="--c:#8b5cf6">
+        <div class="kpi-lbl">สินค้า Util สูงสุด</div>
+        <div class="kpi-val">${Math.max(...cumProdPcts)}%</div>
+        <div class="kpi-sub">${PRODS[bestProdIdx]}</div>
+        <span class="badge b-p">▲ อันดับ 1</span>
+      </div>
+      <div class="kpi" style="--c:#ef4444">
+        <div class="kpi-lbl">สินค้า Util ต่ำสุด</div>
+        <div class="kpi-val">${Math.min(...cumProdPcts)}%</div>
+        <div class="kpi-sub">${PRODS[cumProdPcts.indexOf(Math.min(...cumProdPcts))]}</div>
+        <span class="badge b-r">▼ ต่ำสุด</span>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">📊 ผลผลิตแต่ละสินค้า vs กำลังผลิตเต็มที่</div><div class="card-sub">รวม 6 เดือน | หน่วย: คิว</div></div><span class="ctag">7 ประเภท</span></div>
+        <div style="height:220px"><canvas id="ca1"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">⚡ % Utilization เฉลี่ยแต่ละสินค้า</div><div class="card-sub">เทียบกำลังผลิตเต็มที่ (เฉลี่ย 6 เดือน)</div></div><span class="ctag">Gauge</span></div>
+        <div style="height:220px"><canvas id="ca2"></canvas></div>
+      </div>
+    </div>
+    <div class="g3">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">🏭 สัดส่วนแต่ละโรงงาน</div><div class="card-sub">รวม 6 เดือน</div></div><span class="ctag">Donut</span></div>
+        <div style="height:185px"><canvas id="ca3"></canvas></div>
+      </div>
+      <div class="card" style="grid-column:span 2">
+        <div class="card-hd"><div><div class="card-title">📈 ผลผลิตรายเดือน — โรงงานพัทยา (P1+P2)</div><div class="card-sub">คิวต่อเดือน | ม.ค.–มิ.ย. 2569</div></div><span class="ctag">Monthly</span></div>
+        <div style="height:185px"><canvas id="ca4"></canvas></div>
+      </div>
+    </div>
+    <div class="slabel">รายละเอียดแยก Line ผลิต — ทั้งหมด 6 เดือน</div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>โรงงาน / Line</th><th>กำลังผลิตเต็มที่ 6 เดือน (คิว)</th><th>ผลิตจริงรวม (คิว)</th><th>% Utilization</th><th>สถานะ</th></tr></thead>
+        <tbody id="tb-all"></tbody>
+      </table></div>
+    </div>
+    <div class="slabel">วิเคราะห์เชิงลึก — CEO View</div>
+    <div class="g2" style="margin-bottom:14px">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">⚠️ Gap Analysis — Capacity ที่ยังเหลือ</div><div class="card-sub">คิวที่ยังไม่ได้ใช้ประโยชน์ | รวม 6 เดือน</div></div><span class="ctag">Gap</span></div>
+        <div style="height:210px"><canvas id="ca6"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">🏭 เปรียบเทียบ Utilization 4 โรงงาน</div><div class="card-sub">% Util เฉลี่ย 6 เดือน vs กำลังผลิตเต็มที่</div></div><span class="ctag">Plant Compare</span></div>
+        <div style="height:210px"><canvas id="ca7"></canvas></div>
+      </div>
+    </div>
+    <div class="g2" style="margin-bottom:14px">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">📊 Trend Utilization แต่ละสินค้า</div><div class="card-sub">% Utilization รายเดือน แยกตามประเภทสินค้า</div></div><span class="ctag">Product Trend</span></div>
+        <div style="height:210px"><canvas id="ca8"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">📈 Trend ผลผลิตรวมรายเดือน</div><div class="card-sub">ม.ค.–มิ.ย. 2569 | คิวรวมทุกโรงงาน</div></div><span class="ctag">Total Trend</span></div>
+        <div style="height:210px"><canvas id="ca9"></canvas></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-hd"><div><div class="card-title">🧱 Trend คิวคอนกรีตผลิตภัณฑ์สำเร็จรูป</div><div class="card-sub">ปริมาณผลิตจริง (คิว) รายเดือน แยกตามประเภทสินค้าทั้ง 7 รายการ | ม.ค.–มิ.ย. 2569</div></div><span class="ctag">Volume Trend</span></div>
+      <div style="height:230px"><canvas id="ca10"></canvas></div>
+    </div>
+    <div class="slabel">Insight — ภาพรวม 6 เดือน</div>
+    <div class="ins-grid" id="ins-all"></div>
+  `;
+  pagesEl.appendChild(div);
+})();
+
+// ===== BUILD PAGES =====
+MONTHS.forEach((mname, mi) => {
+  const totalAct = TOTAL_ACT[mi];
+  const util = (totalAct / TOTAL_CAP * 100).toFixed(1);
+  const plantAct = PLANT_ACT[mi];
+  const bestPlant = ['พัทยา','นาวัง','หนองปรือ','ปทุมธานี'][plantAct.indexOf(Math.max(...plantAct))];
+  const bestPlantVal = Math.max(...plantAct);
+  const actProd = ACT_PROD[mi];
+  const prodPcts = actProd.map((a,i) => a/CAP_PROD[i]*100);
+  const bestProdIdx = prodPcts.indexOf(Math.max(...prodPcts));
+  const bestProdPct = prodPcts[bestProdIdx].toFixed(1);
+  const momDiff = mi > 0 ? ((totalAct - TOTAL_ACT[mi-1]) / TOTAL_ACT[mi-1] * 100).toFixed(1) : null;
+  const momStr = mi > 0 ? (momDiff >= 0 ? `▲ +${momDiff}%` : `▼ ${momDiff}%`) : '— เดือนแรก';
+  const momClass = momDiff === null ? 'b-t' : momDiff >= 0 ? 'b-g' : 'b-r';
+
+  const div = document.createElement('div');
+  div.className = 'page';
+  div.id = `page-${mi}`;
+  div.innerHTML = `
+    <div class="slabel">${mname} — สรุปภาพรวม</div>
+    <div class="kpi-row">
+      <div class="kpi" style="--c:#3b82f6">
+        <div class="kpi-lbl">ผลิตจริงรวม</div>
+        <div class="kpi-val">${totalAct.toLocaleString()}</div>
+        <div class="kpi-sub">คิวคอนกรีต</div>
+        <span class="badge ${momClass}">${momStr}</span>
+      </div>
+      <div class="kpi" style="--c:#10b981">
+        <div class="kpi-lbl">% Utilization รวม</div>
+        <div class="kpi-val">${util}%</div>
+        <div class="kpi-sub">กำลังผลิต ${TOTAL_CAP.toLocaleString()} คิว</div>
+        <span class="badge ${parseFloat(util)>=40?'b-g':'b-a'}">${parseFloat(util)>=40?'✓ ดี':'⚠ ต่ำกว่าเป้า'}</span>
+      </div>
+      <div class="kpi" style="--c:#f59e0b">
+        <div class="kpi-lbl">โรงงานที่ผลิตสูงสุด</div>
+        <div class="kpi-val">${bestPlant}</div>
+        <div class="kpi-sub">${bestPlantVal.toLocaleString()} คิว</div>
+        <span class="badge b-g">✓ Best Plant</span>
+      </div>
+      <div class="kpi" style="--c:#8b5cf6">
+        <div class="kpi-lbl">สินค้า Util สูงสุด</div>
+        <div class="kpi-val">${bestProdPct}%</div>
+        <div class="kpi-sub">${PRODS[bestProdIdx]}</div>
+        <span class="badge b-p">▲ อันดับ 1</span>
+      </div>
+      <div class="kpi" style="--c:#ef4444">
+        <div class="kpi-lbl">สินค้า Util ต่ำสุด</div>
+        <div class="kpi-val">${(Math.min(...prodPcts)).toFixed(1)}%</div>
+        <div class="kpi-sub">${PRODS[prodPcts.indexOf(Math.min(...prodPcts))]}</div>
+        <span class="badge b-r">▼ ต่ำสุด</span>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">📊 ผลผลิตแต่ละสินค้า vs กำลังผลิตเต็มที่</div><div class="card-sub">${mname} | หน่วย: คิว</div></div><span class="ctag">7 ประเภท</span></div>
+        <div style="height:220px"><canvas id="c1-${mi}"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">⚡ % Utilization แต่ละสินค้า</div><div class="card-sub">เทียบกำลังผลิตเต็มที่</div></div><span class="ctag">Gauge</span></div>
+        <div style="height:220px"><canvas id="c2-${mi}"></canvas></div>
+      </div>
+    </div>
+    <div class="g3">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">🏭 สัดส่วนแต่ละโรงงาน</div><div class="card-sub">${mname}</div></div><span class="ctag">Donut</span></div>
+        <div style="height:185px"><canvas id="c3-${mi}"></canvas></div>
+      </div>
+      <div class="card" style="grid-column:span 2">
+        <div class="card-hd"><div><div class="card-title">📈 ผลผลิตรายวัน — โรงงานพัทยา (P1+P2)</div><div class="card-sub">คิวต่อวัน | ${mname}</div></div><span class="ctag">Daily</span></div>
+        <div style="height:185px"><canvas id="c4-${mi}"></canvas></div>
+      </div>
+    </div>
+    <div class="slabel">รายละเอียดแยก Line ผลิต — ${mname}</div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>โรงงาน / Line</th><th>กำลังผลิตเต็มที่ (คิว)</th><th>ผลิตจริง (คิว)</th><th>% Utilization</th><th>สถานะ</th><th>หมายเหตุ</th></tr></thead>
+        <tbody id="tb-${mi}"></tbody>
+      </table></div>
+    </div>
+    <div class="slabel">วิเคราะห์เชิงลึก — CEO View</div>
+    <div class="g2" style="margin-bottom:14px">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">⚠️ Gap Analysis — Capacity ที่ยังเหลือ</div><div class="card-sub">คิวที่ยังไม่ได้ใช้ประโยชน์ | ${mname}</div></div><span class="ctag">Gap</span></div>
+        <div style="height:210px"><canvas id="c6-${mi}"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">🏭 เปรียบเทียบ Utilization 4 โรงงาน</div><div class="card-sub">% ผลิตจริง vs กำลังผลิตเต็มที่ | ${mname}</div></div><span class="ctag">Plant Compare</span></div>
+        <div style="height:210px"><canvas id="c7-${mi}"></canvas></div>
+      </div>
+    </div>
+    <div class="g2" style="margin-bottom:14px">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">📊 Trend Utilization แต่ละสินค้า</div><div class="card-sub">% Utilization รายเดือน แยกตามประเภทสินค้า</div></div><span class="ctag">Product Trend</span></div>
+        <div style="height:210px"><canvas id="c8-${mi}"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">📈 การเปลี่ยนแปลง MoM — เทียบเดือนก่อน</div><div class="card-sub">+/- คิว เทียบ${mi>0?MONTHS[mi-1]:'(เดือนแรก)'} vs ${mname}</div></div><span class="ctag">MoM Delta</span></div>
+        <div style="height:210px"><canvas id="c9-${mi}"></canvas></div>
+      </div>
+    </div>
+    <div class="slabel">Insight — ${mname}</div>
+    <div class="ins-grid" id="ins-${mi}"></div>
+  `;
+  pagesEl.appendChild(div);
+});
+
+// ===== RENDER CHARTS =====
+const chartInstances = {};
+function renderMonth(mi) {
+  const actProd = ACT_PROD[mi];
+  const pcts = actProd.map((a,i) => Math.round(a/CAP_PROD[i]*100));
+  const utilColors = pcts.map(p => p>=80?'#10b981':p>=40?'#f59e0b':'#ef4444');
+  const d = DAILY[mi];
+  const plantAct = PLANT_ACT[mi];
+
+  if (!chartInstances[`c1-${mi}`]) {
+    chartInstances[`c1-${mi}`] = new Chart(document.getElementById(`c1-${mi}`),{
+      type:'bar',
+      data:{labels:PRODS,datasets:[
+        {label:'กำลังผลิตเต็มที่',data:CAP_PROD,backgroundColor:'rgba(0,0,0,0.06)',borderColor:'rgba(0,0,0,0.15)',borderWidth:1,borderRadius:4},
+        {label:'ผลิตจริง',data:actProd,backgroundColor:PROD_COLORS.map(c=>c+'aa'),borderColor:PROD_COLORS,borderWidth:1.5,borderRadius:4}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+        plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:11}}},tooltip:tip},
+        scales:{x:{grid:{color:gc},ticks:{color:tc,callback:v=>v.toLocaleString()}},y:{grid:{display:false},ticks:{color:tc,font:{size:11}}}}
+      }
+    });
+  }
+
+  if (!chartInstances[`c2-${mi}`]) {
+    chartInstances[`c2-${mi}`] = new Chart(document.getElementById(`c2-${mi}`),{
+      type:'bar',
+      data:{labels:PRODS,datasets:[{label:'% Utilization',data:pcts,
+        backgroundColor:utilColors.map(c=>c+'aa'),borderColor:utilColors,borderWidth:1.5,borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+        plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:ctx=>` ${ctx.parsed.x}%`}}},
+        scales:{x:{grid:{color:gc},ticks:{color:tc,callback:v=>v+'%'},max:130,min:0},y:{grid:{display:false},ticks:{color:tc,font:{size:11}}}}
+      }
+    });
+  }
+
+  if (!chartInstances[`c3-${mi}`]) {
+    chartInstances[`c3-${mi}`] = new Chart(document.getElementById(`c3-${mi}`),{
+      type:'doughnut',
+      data:{labels:['พัทยา','นาวัง','หนองปรือ','ปทุมธานี'],
+        datasets:[{data:plantAct,backgroundColor:PLANT_COLORS,borderColor:'#ffffff',borderWidth:3,hoverOffset:8}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+        plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11},padding:8}},tooltip:tip}}
+    });
+  }
+
+  if (!chartInstances[`c4-${mi}`]) {
+    chartInstances[`c4-${mi}`] = new Chart(document.getElementById(`c4-${mi}`),{
+      type:'bar',
+      data:{labels:d.days.map(String),datasets:[
+        {label:'P1',data:d.p1,backgroundColor:'#3b82f6bb',borderRadius:2,stack:'s'},
+        {label:'P2',data:d.p2,backgroundColor:'#8b5cf6bb',borderRadius:2,stack:'s'}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:11}}},tooltip:tip},
+        scales:{x:{stacked:true,grid:{color:gc},ticks:{color:tc,font:{size:10}}},y:{stacked:true,grid:{color:gc},ticks:{color:tc}}}
+      }
+    });
+  }
+
+  if (!chartInstances[`c6-${mi}`]) {
+    const gaps = CAP_PROD.map((c,i) => Math.max(0, c - actProd[i]));
+    chartInstances[`c6-${mi}`] = new Chart(document.getElementById(`c6-${mi}`),{
+      type:'bar',
+      data:{labels:PRODS,datasets:[
+        {label:'ผลิตจริง',data:actProd,backgroundColor:PROD_COLORS.map(c=>c+'99'),borderColor:PROD_COLORS,borderWidth:1,borderRadius:3,stack:'s'},
+        {label:'Capacity เหลือ',data:gaps,backgroundColor:'rgba(0,0,0,0.04)',borderColor:'rgba(0,0,0,0.12)',borderWidth:1,borderRadius:3,stack:'s'}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+        plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:11}}},tooltip:{...tip,callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.x.toLocaleString()} คิว`}}},
+        scales:{x:{stacked:true,grid:{color:gc},ticks:{color:tc,callback:v=>v.toLocaleString()}},y:{stacked:true,grid:{display:false},ticks:{color:tc,font:{size:11}}}}
+      }
+    });
+  }
+
+  if (!chartInstances[`c7-${mi}`]) {
+    const plantNames = ['พัทยา','นาวัง','หนองปรือ','ปทุมธานี'];
+    const plantPcts = PLANT_ACT[mi].map((a,i)=>Math.round(a/PLANT_CAP[i]*100));
+    const pColors = plantPcts.map(p=>p>=60?'#10b981':p>=35?'#f59e0b':'#ef4444');
+    chartInstances[`c7-${mi}`] = new Chart(document.getElementById(`c7-${mi}`),{
+      type:'bar',
+      data:{labels:plantNames,datasets:[{label:'% Utilization',data:plantPcts,backgroundColor:pColors.map(c=>c+'bb'),borderColor:pColors,borderWidth:1.5,borderRadius:6}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:ctx=>`Util: ${ctx.parsed.y}%`,afterLabel:ctx=>`ผลิตจริง: ${PLANT_ACT[mi][ctx.dataIndex].toLocaleString()} คิว`}}},
+        scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:12}}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>v+'%'},min:0,max:100}},
+        layout:{padding:{top:20}}
+      },
+      plugins:[{id:'pctLabel',afterDatasetsDraw(chart){
+        const {ctx,data}=chart;
+        data.datasets[0].data.forEach((val,i)=>{
+          const bar=chart.getDatasetMeta(0).data[i];
+          ctx.save();ctx.fillStyle=val>=60?'#10b981':val>=35?'#f59e0b':'#ef4444';
+          ctx.font='bold 13px Sarabun';ctx.textAlign='center';
+          ctx.fillText(val+'%',bar.x,bar.y-6);ctx.restore();
+        });
+      }}]
+    });
+  }
+
+  if (!chartInstances[`c8-${mi}`]) {
+    const prodColors6=['#3b82f6','#f97316','#a855f7','#10b981','#ef4444','#eab308','#06b6d4'];
+    const dashPatterns=[[],[6,3],[3,3],[8,4],[4,4,1,4],[],[2,2]];
+    const datasets=PRODS.map((p,pi)=>({
+      label:p,data:ACT_PROD.map((mo)=>parseFloat((mo[pi]/CAP_PROD[pi]*100).toFixed(1))),
+      borderColor:prodColors6[pi],backgroundColor:prodColors6[pi]+'15',borderWidth:2,
+      pointRadius:4,pointBackgroundColor:prodColors6[pi],pointBorderColor:'#ffffff',pointBorderWidth:1.5,
+      tension:0.35,fill:false,borderDash:dashPatterns[pi]
+    }));
+    chartInstances[`c8-${mi}`] = new Chart(document.getElementById(`c8-${mi}`),{
+      type:'line',data:{labels:MONTHS,datasets},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:10},padding:8,usePointStyle:true}},tooltip:{...tip,callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y}%`}}},
+        scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>v+'%'},min:0}}
+      }
+    });
+  }
+
+  if (!chartInstances[`c9-${mi}`]) {
+    let deltas;
+    if (mi===0) { deltas=actProd.map(()=>0); }
+    else { const prev=ACT_PROD[mi-1]; deltas=actProd.map((a,i)=>Math.round((a-prev[i])*10)/10); }
+    const dColors=deltas.map(d=>d>=0?'#10b981aa':'#ef4444aa');
+    const dBorders=deltas.map(d=>d>=0?'#10b981':'#ef4444');
+    chartInstances[`c9-${mi}`] = new Chart(document.getElementById(`c9-${mi}`),{
+      type:'bar',
+      data:{labels:PRODS,datasets:[{label:'เปลี่ยนแปลง (คิว)',data:deltas,backgroundColor:dColors,borderColor:dBorders,borderWidth:1.5,borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+        plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:ctx=>{const v=ctx.parsed.x;return ` ${v>=0?'+':''}${v.toLocaleString()} คิว`}}}},
+        scales:{x:{grid:{color:gc},ticks:{color:tc,callback:v=>(v>=0?'+':'')+v.toLocaleString()},afterDataLimits:a=>{const mx=Math.max(...deltas.map(Math.abs));a.min=-mx*1.2;a.max=mx*1.2;}},y:{grid:{display:false},ticks:{color:tc,font:{size:11}}}}
+      }
+    });
+  }
+
+  const tb=document.getElementById(`tb-${mi}`);
+  if (tb && !tb.innerHTML) {
+    tb.innerHTML=TABLE_ROWS[mi].map(([label,cap,act,note])=>{
+      const pct=Math.round(act/cap*100);
+      const col=pct>=80?'#10b981':pct>=50?'#3b82f6':pct>=30?'#f59e0b':'#ef4444';
+      const status=pct>=80?'ดีมาก':pct>=50?'ดี':pct>=30?'ปานกลาง':'ต่ำ';
+      const pillC=pct>=80?'p-g':pct>=50?'p-g':pct>=30?'p-a':'p-r';
+      return `<tr>
+        <td style="font-weight:500">${label}</td><td>${cap.toLocaleString()}</td>
+        <td><strong>${act.toLocaleString()}</strong></td>
+        <td><div class="bw"><div class="bt"><div class="bf" style="width:${Math.min(pct,100)}%;background:${col}"></div></div>
+          <span style="min-width:36px;color:${col};font-weight:600;font-size:11px">${pct}%</span></div></td>
+        <td><span class="pill ${pillC}">${status}</span></td>
+        <td style="color:var(--muted);font-size:11px">${note}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const insEl=document.getElementById(`ins-${mi}`);
+  if (insEl && !insEl.innerHTML) {
+    insEl.innerHTML=INSIGHTS[mi].map(ins=>`
+      <div class="ins-card" style="--c:${ins.c}">
+        <div class="ins-icon">${ins.icon}</div>
+        <div class="ins-title">${ins.title}</div>
+        <div class="ins-body">${ins.body}</div>
+      </div>`).join('');
+  }
+}
+
+function renderAll() {
+  if (chartInstances['ca1']) return;
+  const cumProd = PRODS.map((_,pi)=>Math.round(ACT_PROD.reduce((s,mo)=>s+mo[pi],0)*100)/100);
+  const cumPlant = [0,1,2,3].map(pi=>Math.round(PLANT_ACT.reduce((s,mo)=>s+mo[pi],0)*100)/100);
+  const cumProdPcts = cumProd.map((v,i)=>Math.round(v/CAP_PROD[i]/6*100));
+  const utilColors = cumProdPcts.map(p=>p>=80?'#10b981':p>=40?'#f59e0b':'#ef4444');
+  const plantUtil6 = cumPlant.map((v,i)=>parseFloat((v/PLANT_CAP[i]/6*100).toFixed(1)));
+  const pColors4 = plantUtil6.map(p=>p>=60?'#10b981':p>=35?'#f59e0b':'#ef4444');
+  const plantNames = ['พัทยา','นาวัง','หนองปรือ','ปทุมธานี'];
+  const prodColors6=['#3b82f6','#f97316','#a855f7','#10b981','#ef4444','#eab308','#06b6d4'];
+  const dashPatterns=[[],[6,3],[3,3],[8,4],[4,4,1,4],[],[2,2]];
+
+  // ca1: ผลผลิตแต่ละสินค้า vs กำลังผลิตเต็มที่ (6 เดือน)
+  chartInstances['ca1'] = new Chart(document.getElementById('ca1'),{
+    type:'bar',
+    data:{labels:PRODS,datasets:[
+      {label:'กำลังผลิตเต็มที่ (6 เดือน)',data:CAP_PROD.map(c=>c*6),backgroundColor:'rgba(0,0,0,0.06)',borderColor:'rgba(0,0,0,0.15)',borderWidth:1,borderRadius:4},
+      {label:'ผลิตจริงรวม',data:cumProd,backgroundColor:PROD_COLORS.map(c=>c+'aa'),borderColor:PROD_COLORS,borderWidth:1.5,borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:11}}},tooltip:tip},
+      scales:{x:{grid:{color:gc},ticks:{color:tc,callback:v=>v.toLocaleString()}},y:{grid:{display:false},ticks:{color:tc,font:{size:11}}}}
+    }
+  });
+
+  // ca2: % Utilization เฉลี่ยแต่ละสินค้า
+  chartInstances['ca2'] = new Chart(document.getElementById('ca2'),{
+    type:'bar',
+    data:{labels:PRODS,datasets:[{label:'% Utilization เฉลี่ย',data:cumProdPcts,
+      backgroundColor:utilColors.map(c=>c+'aa'),borderColor:utilColors,borderWidth:1.5,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:ctx=>` ${ctx.parsed.x}%`}}},
+      scales:{x:{grid:{color:gc},ticks:{color:tc,callback:v=>v+'%'},max:130,min:0},y:{grid:{display:false},ticks:{color:tc,font:{size:11}}}}
+    }
+  });
+
+  // ca3: donut สัดส่วนโรงงาน
+  chartInstances['ca3'] = new Chart(document.getElementById('ca3'),{
+    type:'doughnut',
+    data:{labels:plantNames,datasets:[{data:cumPlant,backgroundColor:PLANT_COLORS,borderColor:'#ffffff',borderWidth:3,hoverOffset:8}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11},padding:8}},tooltip:tip}}
+  });
+
+  // ca4: ผลผลิตรายเดือน โรงงานพัทยา P1+P2
+  const monthP1 = DAILY.map(d=>Math.round(d.p1.reduce((a,b)=>a+b,0)*100)/100);
+  const monthP2 = DAILY.map(d=>Math.round(d.p2.reduce((a,b)=>a+b,0)*100)/100);
+  chartInstances['ca4'] = new Chart(document.getElementById('ca4'),{
+    type:'bar',
+    data:{labels:MONTHS,datasets:[
+      {label:'P1',data:monthP1,backgroundColor:'#3b82f6bb',borderRadius:2,stack:'s'},
+      {label:'P2',data:monthP2,backgroundColor:'#8b5cf6bb',borderRadius:2,stack:'s'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:11}}},tooltip:{...tip,callbacks:{footer:items=>`รวม: ${items.reduce((s,i)=>s+i.parsed.y,0).toLocaleString()} คิว`}}},
+      scales:{x:{stacked:true,grid:{color:gc},ticks:{color:tc,font:{size:10}}},y:{stacked:true,grid:{color:gc},ticks:{color:tc,callback:v=>v.toLocaleString()}}}
+    }
+  });
+
+  // ca6: Gap Analysis
+  chartInstances['ca6'] = new Chart(document.getElementById('ca6'),{
+    type:'bar',
+    data:{labels:PRODS,datasets:[
+      {label:'ผลิตจริงรวม',data:cumProd,backgroundColor:PROD_COLORS.map(c=>c+'99'),borderColor:PROD_COLORS,borderWidth:1,borderRadius:3,stack:'s'},
+      {label:'Capacity เหลือ',data:CAP_PROD.map((c,i)=>Math.max(0,c*6-cumProd[i])),backgroundColor:'rgba(0,0,0,0.04)',borderColor:'rgba(0,0,0,0.12)',borderWidth:1,borderRadius:3,stack:'s'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:11}}},tooltip:{...tip,callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.x.toLocaleString()} คิว`}}},
+      scales:{x:{stacked:true,grid:{color:gc},ticks:{color:tc,callback:v=>v.toLocaleString()}},y:{stacked:true,grid:{display:false},ticks:{color:tc,font:{size:11}}}}
+    }
+  });
+
+  // ca7: เปรียบเทียบ Utilization 4 โรงงาน
+  chartInstances['ca7'] = new Chart(document.getElementById('ca7'),{
+    type:'bar',
+    data:{labels:plantNames,datasets:[{label:'% Utilization เฉลี่ย',data:plantUtil6,backgroundColor:pColors4.map(c=>c+'bb'),borderColor:pColors4,borderWidth:1.5,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:ctx=>`Util: ${ctx.parsed.y}%`,afterLabel:ctx=>`ผลิตจริงรวม: ${cumPlant[ctx.dataIndex].toLocaleString()} คิว`}}},
+      scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:12}}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>v+'%'},min:0,max:100}},
+      layout:{padding:{top:20}}
+    },
+    plugins:[{id:'pctLabelAll',afterDatasetsDraw(chart){
+      const {ctx,data}=chart;
+      data.datasets[0].data.forEach((val,i)=>{
+        const bar=chart.getDatasetMeta(0).data[i];
+        ctx.save();ctx.fillStyle=val>=60?'#10b981':val>=35?'#f59e0b':'#ef4444';
+        ctx.font='bold 13px Sarabun';ctx.textAlign='center';
+        ctx.fillText(val+'%',bar.x,bar.y-6);ctx.restore();
+      });
+    }}]
+  });
+
+  // ca8: Trend Utilization แต่ละสินค้า
+  chartInstances['ca8'] = new Chart(document.getElementById('ca8'),{
+    type:'line',
+    data:{labels:MONTHS,datasets:PRODS.map((p,pi)=>({
+      label:p,data:ACT_PROD.map((mo)=>parseFloat((mo[pi]/CAP_PROD[pi]*100).toFixed(1))),
+      borderColor:prodColors6[pi],backgroundColor:prodColors6[pi]+'15',borderWidth:2,
+      pointRadius:4,pointBackgroundColor:prodColors6[pi],pointBorderColor:'#ffffff',pointBorderWidth:1.5,
+      tension:0.35,fill:false,borderDash:dashPatterns[pi]
+    }))},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:10},padding:8,usePointStyle:true}},tooltip:{...tip,callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y}%`}}},
+      scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>v+'%'},min:0}}
+    }
+  });
+
+  // ca9: Trend ผลผลิตรวมรายเดือน
+  chartInstances['ca9'] = new Chart(document.getElementById('ca9'),{
+    type:'bar',
+    data:{labels:MONTHS,datasets:[{label:'ผลิตจริงรวม (คิว)',data:TOTAL_ACT,
+      backgroundColor:TOTAL_ACT.map((_,i)=>i===0?'#3b82f6bb':TOTAL_ACT[i]>=TOTAL_ACT[i-1]?'#10b981bb':'#ef4444bb'),
+      borderColor:TOTAL_ACT.map((_,i)=>i===0?'#3b82f6':TOTAL_ACT[i]>=TOTAL_ACT[i-1]?'#10b981':'#ef4444'),
+      borderWidth:1.5,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:ctx=>{
+        const v=ctx.parsed.y;const i=ctx.dataIndex;
+        const chg=i===0?'':(v-TOTAL_ACT[i-1]>=0?` ▲ +${(v-TOTAL_ACT[i-1]).toLocaleString()}`:`▼ ${(v-TOTAL_ACT[i-1]).toLocaleString()}`);
+        return `${v.toLocaleString()} คิว${chg}`;
+      }}}},
+      scales:{x:{grid:{display:false},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>v.toLocaleString()},min:10000}}
+    }
+  });
+
+  // ca10: Trend คิวคอนกรีตผลิตภัณฑ์สำเร็จรูป (ปริมาณจริง ไม่ใช่ %)
+  chartInstances['ca10'] = new Chart(document.getElementById('ca10'),{
+    type:'line',
+    data:{labels:MONTHS,datasets:PRODS.map((p,pi)=>({
+      label:p,data:ACT_PROD.map(mo=>mo[pi]),
+      borderColor:prodColors6[pi],backgroundColor:prodColors6[pi]+'15',borderWidth:2,
+      pointRadius:4,pointBackgroundColor:prodColors6[pi],pointBorderColor:'#ffffff',pointBorderWidth:1.5,
+      tension:0.35,fill:false,borderDash:dashPatterns[pi]
+    }))},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:10},padding:8,usePointStyle:true}},tooltip:{...tip,callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()} คิว`}}},
+      scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>v.toLocaleString()},min:0}}
+    }
+  });
+
+  // fill table (10 lines)
+  const tb = document.getElementById('tb-all');
+  if (tb && !tb.innerHTML) {
+    tb.innerHTML = TABLE_ROWS[0].map((row, ri) => {
+      const label = row[0];
+      const cap6 = row[1] * 6;
+      const act6 = Math.round(TABLE_ROWS.reduce((s,mo)=>s+mo[ri][2],0)*100)/100;
+      const pct = Math.round(act6/cap6*100);
+      const col = pct>=80?'#10b981':pct>=50?'#3b82f6':pct>=30?'#f59e0b':'#ef4444';
+      const status = pct>=80?'ดีมาก':pct>=50?'ดี':pct>=30?'ปานกลาง':'ต่ำ';
+      const pillC = pct>=80?'p-g':pct>=50?'p-g':pct>=30?'p-a':'p-r';
+      return `<tr>
+        <td style="font-weight:500">${label}</td><td>${cap6.toLocaleString()}</td>
+        <td><strong>${act6.toLocaleString()}</strong></td>
+        <td><div class="bw"><div class="bt"><div class="bf" style="width:${Math.min(pct,100)}%;background:${col}"></div></div>
+          <span style="min-width:36px;color:${col};font-weight:600;font-size:11px">${pct}%</span></div></td>
+        <td><span class="pill ${pillC}">${status}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // fill insights
+  const insEl = document.getElementById('ins-all');
+  if (insEl && !insEl.innerHTML) {
+    const bestMonthIdx = TOTAL_ACT.indexOf(Math.max(...TOTAL_ACT));
+    const worstMonthIdx = TOTAL_ACT.indexOf(Math.min(...TOTAL_ACT));
+    const totalAll = Math.round(TOTAL_ACT.reduce((a,b)=>a+b,0)*100)/100;
+    const avgUtil = (totalAll/(TOTAL_CAP*6)*100).toFixed(1);
+    const bestProdIdx = cumProdPcts.indexOf(Math.max(...cumProdPcts));
+    const worstProdIdx = cumProdPcts.indexOf(Math.min(...cumProdPcts));
+    const bestPlantIdx = cumPlant.indexOf(Math.max(...cumPlant));
+    const ins = [
+      {c:'#3b82f6',icon:'📊',title:`ภาพรวม 6 เดือน — ${totalAll.toLocaleString()} คิว`,body:`Utilization เฉลี่ย ${avgUtil}% จากกำลังผลิตรวม ${(TOTAL_CAP*6).toLocaleString()} คิว มีกำลังเหลืออีก ${((TOTAL_CAP*6)-totalAll).toLocaleString()} คิว`},
+      {c:'#10b981',icon:'🏆',title:`${MONTHS[bestMonthIdx]} — เดือนที่ผลิตสูงสุด`,body:`${TOTAL_ACT[bestMonthIdx].toLocaleString()} คิว คิดเป็น ${(TOTAL_ACT[bestMonthIdx]/TOTAL_CAP*100).toFixed(1)}% Utilization สูงสุดในรอบ 6 เดือน`},
+      {c:'#ef4444',icon:'📉',title:`${MONTHS[worstMonthIdx]} — เดือนที่ผลิตต่ำสุด`,body:`${TOTAL_ACT[worstMonthIdx].toLocaleString()} คิว ต่างจากเดือนสูงสุด ${(TOTAL_ACT[bestMonthIdx]-TOTAL_ACT[worstMonthIdx]).toLocaleString()} คิว`},
+      {c:'#f59e0b',icon:'🏭',title:`${plantNames[bestPlantIdx]} — โรงงานผลิตสูงสุด`,body:`รวม ${cumPlant[bestPlantIdx].toLocaleString()} คิว คิดเป็น ${plantUtil6[bestPlantIdx]}% Utilization เฉลี่ย`},
+      {c:'#8b5cf6',icon:'⚡',title:`${PRODS[bestProdIdx]} — สินค้า Util สูงสุด`,body:`Utilization เฉลี่ย ${cumProdPcts[bestProdIdx]}% ผลิตรวม ${cumProd[bestProdIdx].toLocaleString()} คิว จากกำลัง ${(CAP_PROD[bestProdIdx]*6).toLocaleString()} คิว`},
+      {c:'#14b8a6',icon:'💡',title:`${PRODS[worstProdIdx]} — โอกาสเพิ่มกำลังผลิต`,body:`Utilization เฉลี่ยเพียง ${cumProdPcts[worstProdIdx]}% ยังมีกำลังเหลืออีก ${(CAP_PROD[worstProdIdx]*6-cumProd[worstProdIdx]).toLocaleString()} คิว ควรพิจารณาเพิ่มคำสั่งซื้อ`},
+    ];
+    insEl.innerHTML = ins.map(i=>`
+      <div class="ins-card" style="--c:${i.c}">
+        <div class="ins-icon">${i.icon}</div>
+        <div class="ins-title">${i.title}</div>
+        <div class="ins-body">${i.body}</div>
+      </div>`).join('');
+  }
+}
+
+function switchTab(idx, btn) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  if (idx === 'all') {
+    document.getElementById('page-all').classList.add('active');
+    renderAll();
+  } else {
+    document.getElementById(`page-${idx}`).classList.add('active');
+    renderMonth(idx);
+  }
+}
+
+renderAll();
+</script>
+</body>
+</html>
