@@ -81,7 +81,7 @@ tr:hover td{background:rgba(0,0,0,0.03)}
       <div class="h-sub">ฝ่ายปฏิบัติการ · อัปเดตข้อมูลถึงวันที่ 30/9/2569</div>
     </div>
   </div>
-  <div style="font-size:12px;color:var(--muted)">มกราคม – กันยายน 2569 <span style="color:var(--green)">(ครบทั้ง 9 เดือน)</span></div>
+  <div style="font-size:12px;color:var(--muted)">มกราคม – กันยายน 2569 <span style="color:var(--green)">(ครบทั้ง 9 เดือน)</span> · <span style="color:var(--amber)">ตั้งแต่ มิ.ย. ปรับกำลังผลิตรั้ว 20→25 คิว/วัน, ผสมเสร็จ P5 295→290 คิว/วัน</span></div>
 </div>
 
 <div class="tab-bar" id="tabBar"></div>
@@ -100,9 +100,21 @@ const NM = MONTHS.length; // จำนวนเดือนที่มีข้
 const PRODS  = ['คอนกรีตผสมเสร็จ','ท่อระบายน้ำ','เสาเข็ม','แผ่นพื้น','รั้วสำเร็จรูป','อื่นๆ','แผ่นทางเท้า'];
 const PROD_COLORS = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#14b8a6','#ef4444','#f97316'];
 const PLANT_COLORS = ['#3b82f6','#10b981','#8b5cf6','#f59e0b'];
-const CAP_PROD = [19700,8375,3540,3760,460,460,600];
-const TOTAL_CAP = 36895;
-const PLANT_CAP = [13800,18555,1540,3000]; // นาวัง = ท่อ1 2400 + ท่อ2 3000 + ท่อ3 2400 + บ่อพัก 575 + แผ่นพื้น 2760 + รั้ว 460 + อื่นๆ 460 + ผสมเสร็จ P5 5900 + ทางเท้า 600 = 18,555 (รวม 4 โรงงาน = 36,895 = TOTAL_CAP)
+// กำลังการผลิตเต็มที่ต่อเดือน (คิว) — มีการปรับตั้งแต่ มิ.ย. 2569:
+//   รั้วสำเร็จรูป 20 → 25 คิว/วัน × 23 วัน = 460 → 575 คิว/เดือน
+//   คอนกรีตผสมเสร็จ P5 295 → 290 คิว/วัน × 20 วัน = 5,900 → 5,800 คิว/เดือน (แพล้นท์ 5 รวมยังเป็น 480 คิว/วัน)
+// prod = [ผสมเสร็จ, ท่อระบายน้ำ, เสาเข็ม, แผ่นพื้น, รั้ว, อื่นๆ, ทางเท้า] | plant = [พัทยา, นาวัง, หนองปรือ, ปทุมธานี]
+const CAP_SETS = [
+  {from:0, prod:[19700,8375,3540,3760,460,460,600], plant:[13800,18555,1540,3000], total:36895}, // ม.ค.–พ.ค.
+  {from:5, prod:[19600,8375,3540,3760,575,460,600], plant:[13800,18570,1540,3000], total:36910}, // ตั้งแต่ มิ.ย.
+];
+const capOf = mi => CAP_SETS.filter(c=>c.from<=mi).pop();
+const CAP_PROD_BY_M  = MONTHS.map((_,m)=>capOf(m).prod);
+const PLANT_CAP_BY_M = MONTHS.map((_,m)=>capOf(m).plant);
+const TOTAL_CAP_BY_M = MONTHS.map((_,m)=>capOf(m).total);
+const SUM_CAP_PROD   = PRODS.map((_,i)=>CAP_PROD_BY_M.reduce((s,c)=>s+c[i],0));
+const SUM_PLANT_CAP  = [0,1,2,3].map(i=>PLANT_CAP_BY_M.reduce((s,c)=>s+c[i],0));
+const SUM_TOTAL_CAP  = TOTAL_CAP_BY_M.reduce((a,b)=>a+b,0);
 
 const ACT_PROD = [
   [6665, 4971.34, 901.06, 1403.89, 412, 58.9, 12.45],     // มกราคม
@@ -197,7 +209,7 @@ const TABLE_ROWS = [
     ['นาวัง — โรงท่อ 1', 2400, 1840.5, 'ผลิตดี'],
     ['นาวัง — โรงท่อ 2', 3000, 2147.4, 'ผลิตดี'],
     ['นาวัง — โรงท่อ 3', 2400, 569.42, 'ผลิตต่ำกว่ากำลัง'],
-    ['นาวัง — แพล้นท์ 5', 10155, 2158.2, 'Utilization ต่ำ มีกำลังเหลือมาก'],
+    ['นาวัง — แพล้นท์ 5', 10170, 2158.2, 'Utilization ต่ำ มีกำลังเหลือมาก'],
     ['นาวัง — โรงแผ่นทางเท้า', 600, 83.15, 'ผลิตน้อย เพิ่มขึ้นจากเดือนก่อน'],
     ['หนองปรือ — เสาเข็ม', 1540, 770, 'ผลิตดี'],
     ['ปทุมธานี — แผ่นพื้น', 1000, 219.64, 'ผลิตต่ำ'],
@@ -209,7 +221,7 @@ const TABLE_ROWS = [
     ['นาวัง — โรงท่อ 1', 2400, 1455.3, 'ผลิตดี Util 60.6% ดีที่สุดของนาวัง'],
     ['นาวัง — โรงท่อ 2', 3000, 1613.25, 'ผลิตปานกลาง Util 53.8%'],
     ['นาวัง — โรงท่อ 3', 2400, 350.85, 'ผลิตต่ำมาก Util 14.6%'],
-    ['นาวัง — แพล้นท์ 5', 10155, 2273, 'Utilization ต่ำ Util 22.4% มีกำลังเหลือมาก'],
+    ['นาวัง — แพล้นท์ 5', 10170, 2273, 'Utilization ต่ำ Util 22.4% มีกำลังเหลือมาก'],
     ['นาวัง — โรงแผ่นทางเท้า', 600, 127.9, 'ผลิตปานกลาง Util 21.3%'],
     ['หนองปรือ — เสาเข็ม', 1540, 592.5, 'ลดลงจากเดือนก่อน Util 38.5%'],
     ['ปทุมธานี — แผ่นพื้น', 1000, 336.59, 'ดีขึ้นต่อเนื่อง Util 33.7% สูงสุดในรอบปี'],
@@ -221,7 +233,7 @@ const TABLE_ROWS = [
     ['นาวัง — โรงท่อ 1', 2400, 1405, 'Util 58.5% ยังเป็น Line ที่ดีที่สุดของนาวัง'],
     ['นาวัง — โรงท่อ 2', 3000, 1102.1, 'Util 36.7% ลดลงจาก ก.ค. -31.7% ต้องติดตาม'],
     ['นาวัง — โรงท่อ 3', 2400, 737.31, 'Util 30.7% ฟื้นตัวแรง +110% จาก ก.ค.'],
-    ['นาวัง — แพล้นท์ 5', 10155, 2202.4, 'Util 21.7% ยังมีกำลังเหลือ 7,952.6 คิว/เดือน'],
+    ['นาวัง — แพล้นท์ 5', 10170, 2202.4, 'Util 21.7% ยังมีกำลังเหลือ 7,967.6 คิว/เดือน'],
     ['นาวัง — โรงแผ่นทางเท้า', 600, 138.9, 'Util 23.2% สูงสุดในรอบปี'],
     ['หนองปรือ — เสาเข็ม', 1540, 387.5, 'Util 25.2% ลดลงจาก ก.ค. -34.6%'],
     ['ปทุมธานี — แผ่นพื้น', 1000, 298, 'Util 29.8% ลดจาก ก.ค. -11.5%'],
@@ -233,7 +245,7 @@ const TABLE_ROWS = [
     ['นาวัง — โรงท่อ 1', 2400, 1001.2, 'Util 41.7% ต่ำสุดของปี ลดจาก ส.ค. -28.7%'],
     ['นาวัง — โรงท่อ 2', 3000, 1405.9, 'Util 46.9% เพิ่มจาก ส.ค. +27.6% Line เดียวของโรงท่อที่โตขึ้น'],
     ['นาวัง — โรงท่อ 3', 2400, 473.83, 'Util 19.7% ลดจาก ส.ค. -35.7%'],
-    ['นาวัง — แพล้นท์ 5', 10155, 2162.1, 'Util 21.3% ทรงตัว -1.8% ยังมีกำลังเหลือ 7,992.9 คิว/เดือน'],
+    ['นาวัง — แพล้นท์ 5', 10170, 2162.1, 'Util 21.3% ทรงตัว -1.8% ยังมีกำลังเหลือ 8,007.9 คิว/เดือน'],
     ['นาวัง — โรงแผ่นทางเท้า', 600, 87.1, 'Util 14.5% ลดจาก ส.ค. -37.3%'],
     ['หนองปรือ — เสาเข็ม', 1540, 670, 'Util 43.5% ฟื้นแรง +72.9% จาก ส.ค.'],
     ['ปทุมธานี — แผ่นพื้น', 1000, 238.97, 'Util 23.9% ลดจาก ส.ค. -19.8%'],
@@ -332,35 +344,35 @@ const INSIGHTS = [
   ],
   [ // มิถุนายน
     {c:'#ef4444',icon:'📉',title:'ผลิตลดลง 5.8%',body:'13,094.85 คิว จาก 13,898.16 คิว พ.ค. — ท่อระบายน้ำลดมากสุด 516.42 คิว (-9.9%) เสาเข็มลด 159.36 คิว (-14%)'},
-    {c:'#10b981',icon:'🏆',title:'รั้วสำเร็จรูป Util 118% — เกินกำลัง!',body:'543.1/460 คิว เกินกำลังต่อเนื่อง 2 เดือน (พ.ค.117%, มิ.ย.118%) สูงสุดในรอบ 6 เดือน ควรพิจารณาขยายไลน์'},
+    {c:'#10b981',icon:'🏆',title:'รั้วสำเร็จรูป Util 94.5% — ปรับกำลังผลิตเป็น 25 คิว/วัน',body:'543.1/575 คิว | ตั้งแต่ มิ.ย. ปรับกำลังผลิตรั้วจาก 20 เป็น 25 คิว/วัน (460 → 575 คิว/เดือน) ถ้าเทียบฐานเดิม 460 คิวจะเท่ากับ 118.1% | ปริมาณผลิตสูงสุดในรอบ 6 เดือน'},
     {c:'#f59e0b',icon:'🔧',title:'โรงท่อ 1+2 ยังแข็งแกร่ง',body:'Util 77%+72% รวม 3,987.9 คิว — ยังเป็น Backbone หลักของนาวัง คิดเป็น 30% ของผลผลิตรวม'},
     {c:'#ef4444',icon:'🚨',title:'ปทุมธานีเสาเข็ม Util 10.6% — ลดลง 3 เดือนติด',body:'211.14/2,000 คิว ลดลง -29.1% จาก พ.ค. (298 คิว) และลดต่อเนื่องจากจุดสูงสุด มี.ค. (452.74 คิว) | ต่ำเป็นอันดับ 3 ของ H1 รองจาก ม.ค. (54.06) และ ก.พ. (206.12 คิว) ต้องเร่งหา Order เพิ่ม มีกำลังเหลือ 1,788.86 คิว'},
-    {c:'#f59e0b',icon:'⚠️',title:'แพล้นท์ 5 Util 21%',body:'2,158.2/10,155 คิว — เป็น Line ที่ใหญ่ที่สุดของนาวังและมีกำลังเหลือมากที่สุด 7,996.8 คิว/เดือน (มากกว่าทุก Line รวมกัน)'},
+    {c:'#f59e0b',icon:'⚠️',title:'แพล้นท์ 5 Util 21%',body:'2,158.2/10,170 คิว — เป็น Line ที่ใหญ่ที่สุดของนาวังและมีกำลังเหลือมากที่สุด 8,011.8 คิว/เดือน (มากกว่า Line อื่นของนาวังรวมกัน 3,759.53 คิว)'},
     {c:'#14b8a6',icon:'🔭',title:'มุมมอง H2 — กลยุทธ์ที่แนะนำ',body:'รั้วและท่อ = Demand สูง ควรรักษา | เสาเข็มปทุมธานี + แพล้นท์ 5 = ต้องเร่งเพิ่ม Order | ท่อระบายน้ำและเสาเข็มลดลง MoM ควรติดตามใกล้ชิด'},
   ],
   [ // กรกฎาคม
     {c:'#ef4444',icon:'📉',title:'ผลิตลดลง 14.0%',body:'11,256.3 คิว จาก 13,094.85 คิว มิ.ย. — เสาเข็มลดมากสุด -34.3% ท่อระบายน้ำลด -23.3% คอนกรีตผสมเสร็จลด -12.5%'},
-    {c:'#10b981',icon:'🏆',title:'รั้วสำเร็จรูป Util 122% — เกินกำลังต่อเนื่อง 3 เดือน',body:'561.1/460 คิว (พ.ค.117%, มิ.ย.118%, ก.ค.122%) ควรพิจารณาขยายไลน์รั้วอย่างจริงจัง'},
+    {c:'#10b981',icon:'🏆',title:'รั้วสำเร็จรูป Util 97.6% — ใกล้เต็มกำลังใหม่',body:'561.1/575 คิว (กำลังผลิต 25 คิว/วัน × 23 วัน) | ผลิตเพิ่มจาก มิ.ย. +3.3% ควรติดตามว่าจะเกินกำลังผลิตใหม่หรือไม่'},
     {c:'#f59e0b',icon:'🔧',title:'โรงท่อ 1+2 นำการผลิตนาวัง',body:'รวม 3,068.55 คิว (Util 60.6%+53.8%) — โรงท่อ 3 ยังต่ำมากที่ 14.6% ต้องเร่งหา Order'},
     {c:'#ef4444',icon:'🚨',title:'ปทุมธานีเสาเข็ม Util 2.6% — ต่ำสุดในรอบปี',body:'52.11/2,000 คิว ลดฮวบจาก 211.14 คิว เดือนก่อน (-75.3%) ต้องตรวจสอบสาเหตุด่วน'},
-    {c:'#f59e0b',icon:'⚠️',title:'แพล้นท์ 5 Util 22.4%',body:'2,273/10,155 คิว — มีกำลังเหลือมากที่สุดในบรรดา Line ของนาวัง 7,882 คิว/เดือน (Util ต่ำสุดเดือนนี้คือโรงท่อ 3 ที่ 14.6%)'},
+    {c:'#f59e0b',icon:'⚠️',title:'แพล้นท์ 5 Util 22.4%',body:'2,273/10,170 คิว — มีกำลังเหลือมากที่สุดในบรรดา Line ของนาวัง 7,897 คิว/เดือน (Util ต่ำสุดเดือนนี้คือโรงท่อ 3 ที่ 14.6%)'},
     {c:'#14b8a6',icon:'💡',title:'สัญญาณผสม — แผ่นพื้น/แผ่นทางเท้า/อื่นๆ โตสวนทาง',body:'แผ่นพื้น +9.2%, แผ่นทางเท้า +53.8%, อื่นๆ +37.9% MoM ขณะที่ผสมเสร็จ/ท่อ/เสาเข็มลดลงชัดเจน ควรทบทวน Demand แต่ละกลุ่มสินค้าแยกกัน'},
   ],
   [ // สิงหาคม (ครบเดือน)
-    {c:'#10b981',icon:'📈',title:'ผลิตรวม 12,223.71 คิว — ฟื้นตัว +8.6%',body:'ฟื้นจากจุดต่ำสุดของปีเมื่อ ก.ค. (11,256.3 คิว) แต่ยังต่ำกว่าค่าเฉลี่ย 8 เดือน (13,026 คิว) | Util 33.1% เทียบกำลังเต็มที่ 36,895 คิว | คอนกรีตผสมเสร็จเพิ่ม +1,336.5 คิว (+29.5%) เป็นตัวขับเคลื่อนหลัก'},
-    {c:'#10b981',icon:'🏆',title:'รั้วสำเร็จรูป Util 125.5% — เกินกำลัง 4 เดือนติด',body:'577.2/460 คิว เพิ่มขึ้นต่อเนื่องทุกเดือน (พ.ค.117.0%, มิ.ย.118.1%, ก.ค.122.0%, ส.ค.125.5%) ควรพิจารณาขยายไลน์รั้วอย่างจริงจัง'},
+    {c:'#10b981',icon:'📈',title:'ผลิตรวม 12,223.71 คิว — ฟื้นตัว +8.6%',body:'ฟื้นจากจุดต่ำสุดของปีเมื่อ ก.ค. (11,256.3 คิว) แต่ยังต่ำกว่าค่าเฉลี่ย 8 เดือน (13,026 คิว) | Util 33.1% เทียบกำลังเต็มที่ 36,910 คิว | คอนกรีตผสมเสร็จเพิ่ม +1,336.5 คิว (+29.5%) เป็นตัวขับเคลื่อนหลัก'},
+    {c:'#10b981',icon:'🏆',title:'รั้วสำเร็จรูป Util 100.4% — เต็มกำลังผลิตใหม่',body:'577.2/575 คิว เกินกำลังผลิตใหม่ (25 คิว/วัน) เล็กน้อย | Util ไต่ขึ้นทุกเดือนตั้งแต่ปรับกำลังผลิต (มิ.ย.94.5%, ก.ค.97.6%, ส.ค.100.4%)'},
     {c:'#3b82f6',icon:'🏭',title:'พัทยาพุ่ง +29.9% นำการฟื้นตัว',body:'5,787.3 คิว Util 41.9% แซงนาวัง (5,585.71 คิว) ขึ้นเป็นโรงงานที่ผลิตสูงสุด ครั้งแรกตั้งแต่ เม.ย. | P2 Util 51.7% สูงสุดในช่วง ก.พ.–ส.ค. และ P1 37.6% ฟื้นตัว +20.3% จาก ก.ค.'},
     {c:'#10b981',icon:'🔧',title:'โรงท่อ 3 ฟื้นตัวแรง +110%',body:'737.31 คิว Util 30.7% จาก ก.ค. 350.85 คิว | โรงท่อ 1 Util 58.5% ยังนำ แต่โรงท่อ 2 ลด -31.7% ทำให้ท่อระบายน้ำรวม 3,459.21 คิว (-4.1% MoM)'},
     {c:'#ef4444',icon:'🚨',title:'เสาเข็มยังเป็นจุดอ่อน Util 15.6%',body:'รวม 552.7 คิว (-14.3% MoM) | หนองปรือ 387.5 คิว ลด -34.6% | ปทุมธานี 165.2 คิว Util 8.3% ฟื้นจาก ก.ค. แต่ยังห่างกำลังผลิตมาก'},
-    {c:'#f59e0b',icon:'⚠️',title:'แพล้นท์ 5 Util 21.7%',body:'2,202.4/10,155 คิว — ยังมีกำลังเหลือ 7,952.6 คิว/เดือน | เดือนนี้เป็น Line ที่ Util ต่ำที่สุดของนาวัง และมีกำลังเหลือมากที่สุดทุกเดือนตลอดปี ควรวางแผน Product Mix'}
+    {c:'#f59e0b',icon:'⚠️',title:'แพล้นท์ 5 Util 21.7%',body:'2,202.4/10,170 คิว — ยังมีกำลังเหลือ 7,967.6 คิว/เดือน | เดือนนี้เป็น Line ที่ Util ต่ำที่สุดของนาวัง และมีกำลังเหลือมากที่สุดทุกเดือนตลอดปี ควรวางแผน Product Mix'}
   ],
   [ // กันยายน (ครบเดือน)
-    {c:'#10b981',icon:'📈',title:'ผลิตรวม 12,482.63 คิว — เพิ่มขึ้น +2.1%',body:'Util 33.8% เทียบกำลังเต็มที่ 36,895 คิว | เพิ่มขึ้น 2 เดือนติด (ก.ค. 11,256.3 → ส.ค. 12,223.71 → ก.ย. 12,482.63) แต่ยังอยู่อันดับ 6 จาก 9 เดือน และต่ำกว่าค่าเฉลี่ยปี (12,965.58 คิว)'},
-    {c:'#10b981',icon:'🏆',title:'รั้วสำเร็จรูป Util 131.2% — สูงสุดของปี',body:'603.6/460 คิว เกินกำลังต่อเนื่องเดือนที่ 5 และเพิ่มขึ้นทุกเดือนตั้งแต่ เม.ย. (พ.ค.117.0%, มิ.ย.118.1%, ก.ค.122.0%, ส.ค.125.5%, ก.ย.131.2%) ควรเร่งขยายไลน์รั้ว'},
+    {c:'#10b981',icon:'📈',title:'ผลิตรวม 12,482.63 คิว — เพิ่มขึ้น +2.1%',body:'Util 33.8% เทียบกำลังเต็มที่ 36,910 คิว | เพิ่มขึ้น 2 เดือนติด (ก.ค. 11,256.3 → ส.ค. 12,223.71 → ก.ย. 12,482.63) แต่ยังอยู่อันดับ 6 จาก 9 เดือน และต่ำกว่าค่าเฉลี่ยปี (12,965.58 คิว)'},
+    {c:'#10b981',icon:'🏆',title:'รั้วสำเร็จรูป Util 105.0% — เกินกำลังใหม่ 2 เดือนติด',body:'603.6/575 คิว ปริมาณผลิตสูงสุดของปี | Util ไต่ขึ้นทุกเดือนตั้งแต่ปรับเป็น 25 คิว/วัน (มิ.ย.94.5%, ก.ค.97.6%, ส.ค.100.4%, ก.ย.105.0%) ควรพิจารณาขยายกำลังผลิตเพิ่ม'},
     {c:'#10b981',icon:'🚀',title:'เสาเข็มฟื้นแรง +103.6%',body:'รวม 1,125.48 คิว Util 31.8% สูงเป็นอันดับ 3 ของปี | ปทุมธานี 455.48 คิว (+175.7%) ทำสถิติสูงสุดของปี จากที่เคยต่ำสุด 52.11 คิว เมื่อ ก.ค. | หนองปรือ 670 คิว (+72.9%)'},
     {c:'#ef4444',icon:'🚨',title:'ท่อระบายน้ำต่ำสุดของปี 3,085.14 คิว',body:'Util 36.8% ลดลง -10.8% จาก ส.ค. | โรงท่อ 1 เหลือ 1,001.2 คิว Util 41.7% ต่ำสุดของปี (-28.7%) | โรงท่อ 3 ลด -35.7% | มีเพียงโรงท่อ 2 ที่เพิ่ม +27.6%'},
     {c:'#3b82f6',icon:'🏭',title:'ปทุมธานีทำสถิติสูงสุด 694.45 คิว',body:'Util 23.1% สูงสุดของปี +49.9% จาก ส.ค. | พัทยา 5,988.05 คิว Util 43.4% นำนาวังเป็นเดือนที่ 2 ติดต่อกัน | นาวัง 5,130.13 คิว -8.2% ต่ำเป็นอันดับ 8 ของปี'},
-    {c:'#f59e0b',icon:'⚠️',title:'แพล้นท์ 5 Util 21.3%',body:'2,162.1/10,155 คิว — มีกำลังเหลือมากที่สุดในบรรดา Line ทั้งหมด 7,992.9 คิว/เดือน (เป็นเช่นนี้ทุกเดือนตลอดปี) | เทียบกับ P2 พัทยา Util 59.3% ซึ่งสูงสุดของเดือนนี้'},
+    {c:'#f59e0b',icon:'⚠️',title:'แพล้นท์ 5 Util 21.3%',body:'2,162.1/10,170 คิว — มีกำลังเหลือมากที่สุดในบรรดา Line ทั้งหมด 8,007.9 คิว/เดือน (เป็นเช่นนี้ทุกเดือนตลอดปี) | เทียบกับ P2 พัทยา Util 59.3% ซึ่งสูงสุดของเดือนนี้'},
   ],
 ];
 // ===== END DATA =====
@@ -384,10 +396,10 @@ MONTHS.forEach((m,i) => {
 const pagesEl = document.getElementById('pages');
 (function(){
   const totalAll = Math.round(TOTAL_ACT.reduce((a,b)=>a+b,0)*100)/100;
-  const util = (totalAll/(TOTAL_CAP*NM)*100).toFixed(1);
+  const util = (totalAll/SUM_TOTAL_CAP*100).toFixed(1);
   const cumProd = PRODS.map((_,pi)=>Math.round(ACT_PROD.reduce((s,mo)=>s+mo[pi],0)*100)/100);
   const cumPlant = [0,1,2,3].map(pi=>Math.round(PLANT_ACT.reduce((s,mo)=>s+mo[pi],0)*100)/100);
-  const cumProdPcts = cumProd.map((v,i)=>Math.round(v/CAP_PROD[i]/NM*100));
+  const cumProdPcts = cumProd.map((v,i)=>Math.round(v/SUM_CAP_PROD[i]*100));
   const bestProdIdx = cumProdPcts.indexOf(Math.max(...cumProdPcts));
   const bestPlant = ['พัทยา','นาวัง','หนองปรือ','ปทุมธานี'][cumPlant.indexOf(Math.max(...cumPlant))];
   const bestPlantVal = Math.max(...cumPlant);
@@ -406,7 +418,7 @@ const pagesEl = document.getElementById('pages');
       <div class="kpi" style="--c:#10b981">
         <div class="kpi-lbl">% Utilization เฉลี่ย</div>
         <div class="kpi-val">${util}%</div>
-        <div class="kpi-sub">กำลังผลิตรวม ${(TOTAL_CAP*NM).toLocaleString()} คิว</div>
+        <div class="kpi-sub">กำลังผลิตรวม ${SUM_TOTAL_CAP.toLocaleString()} คิว</div>
         <span class="badge ${parseFloat(util)>=40?'b-g':'b-a'}">${parseFloat(util)>=40?'✓ ดี':'⚠ ต่ำกว่าเป้า'}</span>
       </div>
       <div class="kpi" style="--c:#f59e0b">
@@ -489,12 +501,12 @@ const pagesEl = document.getElementById('pages');
 // ===== BUILD PAGES =====
 MONTHS.forEach((mname, mi) => {
   const totalAct = TOTAL_ACT[mi];
-  const util = (totalAct / TOTAL_CAP * 100).toFixed(1);
+  const util = (totalAct / TOTAL_CAP_BY_M[mi] * 100).toFixed(1);
   const plantAct = PLANT_ACT[mi];
   const bestPlant = ['พัทยา','นาวัง','หนองปรือ','ปทุมธานี'][plantAct.indexOf(Math.max(...plantAct))];
   const bestPlantVal = Math.max(...plantAct);
   const actProd = ACT_PROD[mi];
-  const prodPcts = actProd.map((a,i) => a/CAP_PROD[i]*100);
+  const prodPcts = actProd.map((a,i) => a/CAP_PROD_BY_M[mi][i]*100);
   const bestProdIdx = prodPcts.indexOf(Math.max(...prodPcts));
   const bestProdPct = prodPcts[bestProdIdx].toFixed(1);
   const DIM = [31,28,31,30,31,30,31,31,30]; // จำนวนวันตามปฏิทินของแต่ละเดือน
@@ -523,7 +535,7 @@ MONTHS.forEach((mname, mi) => {
       <b>⚠️ ข้อมูลยังไม่ครบเดือน</b> — ${mname} มีข้อมูลเฉพาะวันที่ ${PARTIAL[mi].label} (${curDays} วัน จาก ${DIM[mi]} วัน)
       ทุกค่า % Utilization ในหน้านี้คิดจาก<b>กำลังผลิตเต็มเดือน</b> จึงต่ำกว่าความเป็นจริง
       หากปรับเป็นฐาน ${curDays}/${DIM[mi]} วัน ให้คูณด้วย ${(DIM[mi]/curDays).toFixed(2)} เท่า
-      · Util รวมแบบปรับฐาน = <b>${(totalAct/TOTAL_CAP*100*DIM[mi]/curDays).toFixed(1)}%</b>
+      · Util รวมแบบปรับฐาน = <b>${(totalAct/TOTAL_CAP_BY_M[mi]*100*DIM[mi]/curDays).toFixed(1)}%</b>
       · เฉลี่ย <b>${(totalAct/curDays).toFixed(2)} คิว/วัน</b>
     </div>` : ''}
     <div class="kpi-row">
@@ -536,7 +548,7 @@ MONTHS.forEach((mname, mi) => {
       <div class="kpi" style="--c:#10b981">
         <div class="kpi-lbl">% Utilization รวม</div>
         <div class="kpi-val">${util}%</div>
-        <div class="kpi-sub">${isPartial ? 'ฐานกำลังเต็มเดือน '+TOTAL_CAP.toLocaleString()+' คิว (ปรับฐาน '+(totalAct/TOTAL_CAP*100*DIM[mi]/curDays).toFixed(1)+'%)' : 'กำลังผลิต '+TOTAL_CAP.toLocaleString()+' คิว'}</div>
+        <div class="kpi-sub">${isPartial ? 'ฐานกำลังเต็มเดือน '+TOTAL_CAP_BY_M[mi].toLocaleString()+' คิว (ปรับฐาน '+(totalAct/TOTAL_CAP_BY_M[mi]*100*DIM[mi]/curDays).toFixed(1)+'%)' : 'กำลังผลิต '+TOTAL_CAP_BY_M[mi].toLocaleString()+' คิว'}</div>
         <span class="badge ${parseFloat(util)>=40?'b-g':'b-a'}">${parseFloat(util)>=40?'✓ ดี':'⚠ ต่ำกว่าเป้า'}</span>
       </div>
       <div class="kpi" style="--c:#f59e0b">
@@ -616,7 +628,7 @@ MONTHS.forEach((mname, mi) => {
 const chartInstances = {};
 function renderMonth(mi) {
   const actProd = ACT_PROD[mi];
-  const pcts = actProd.map((a,i) => Math.round(a/CAP_PROD[i]*100));
+  const pcts = actProd.map((a,i) => Math.round(a/CAP_PROD_BY_M[mi][i]*100));
   const utilColors = pcts.map(p => p>=80?'#10b981':p>=40?'#f59e0b':'#ef4444');
   const d = DAILY[mi];
   const plantAct = PLANT_ACT[mi];
@@ -625,7 +637,7 @@ function renderMonth(mi) {
     chartInstances[`c1-${mi}`] = new Chart(document.getElementById(`c1-${mi}`),{
       type:'bar',
       data:{labels:PRODS,datasets:[
-        {label:'กำลังผลิตเต็มที่',data:CAP_PROD,backgroundColor:'rgba(0,0,0,0.06)',borderColor:'rgba(0,0,0,0.15)',borderWidth:1,borderRadius:4},
+        {label:'กำลังผลิตเต็มที่',data:CAP_PROD_BY_M[mi],backgroundColor:'rgba(0,0,0,0.06)',borderColor:'rgba(0,0,0,0.15)',borderWidth:1,borderRadius:4},
         {label:'ผลิตจริง',data:actProd,backgroundColor:PROD_COLORS.map(c=>c+'aa'),borderColor:PROD_COLORS,borderWidth:1.5,borderRadius:4}
       ]},
       options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
@@ -672,7 +684,7 @@ function renderMonth(mi) {
   }
 
   if (!chartInstances[`c6-${mi}`]) {
-    const gaps = CAP_PROD.map((c,i) => Math.max(0, c - actProd[i]));
+    const gaps = CAP_PROD_BY_M[mi].map((c,i) => Math.max(0, c - actProd[i]));
     chartInstances[`c6-${mi}`] = new Chart(document.getElementById(`c6-${mi}`),{
       type:'bar',
       data:{labels:PRODS,datasets:[
@@ -688,7 +700,7 @@ function renderMonth(mi) {
 
   if (!chartInstances[`c7-${mi}`]) {
     const plantNames = ['พัทยา','นาวัง','หนองปรือ','ปทุมธานี'];
-    const plantPcts = PLANT_ACT[mi].map((a,i)=>Math.round(a/PLANT_CAP[i]*100));
+    const plantPcts = PLANT_ACT[mi].map((a,i)=>Math.round(a/PLANT_CAP_BY_M[mi][i]*100));
     const pColors = plantPcts.map(p=>p>=60?'#10b981':p>=35?'#f59e0b':'#ef4444');
     chartInstances[`c7-${mi}`] = new Chart(document.getElementById(`c7-${mi}`),{
       type:'bar',
@@ -714,7 +726,7 @@ function renderMonth(mi) {
     const prodColors6=['#3b82f6','#f97316','#a855f7','#10b981','#ef4444','#eab308','#06b6d4'];
     const dashPatterns=[[],[6,3],[3,3],[8,4],[4,4,1,4],[],[2,2]];
     const datasets=PRODS.map((p,pi)=>({
-      label:p,data:ACT_PROD.map((mo)=>parseFloat((mo[pi]/CAP_PROD[pi]*100).toFixed(1))),
+      label:p,data:ACT_PROD.map((mo,m)=>parseFloat((mo[pi]/CAP_PROD_BY_M[m][pi]*100).toFixed(1))),
       borderColor:prodColors6[pi],backgroundColor:prodColors6[pi]+'15',borderWidth:2,
       pointRadius:4,pointBackgroundColor:prodColors6[pi],pointBorderColor:'#ffffff',pointBorderWidth:1.5,
       tension:0.35,fill:false,borderDash:dashPatterns[pi]
@@ -777,9 +789,9 @@ function renderAll() {
   if (chartInstances['ca1']) return;
   const cumProd = PRODS.map((_,pi)=>Math.round(ACT_PROD.reduce((s,mo)=>s+mo[pi],0)*100)/100);
   const cumPlant = [0,1,2,3].map(pi=>Math.round(PLANT_ACT.reduce((s,mo)=>s+mo[pi],0)*100)/100);
-  const cumProdPcts = cumProd.map((v,i)=>Math.round(v/CAP_PROD[i]/NM*100));
+  const cumProdPcts = cumProd.map((v,i)=>Math.round(v/SUM_CAP_PROD[i]*100));
   const utilColors = cumProdPcts.map(p=>p>=80?'#10b981':p>=40?'#f59e0b':'#ef4444');
-  const plantUtil6 = cumPlant.map((v,i)=>parseFloat((v/PLANT_CAP[i]/NM*100).toFixed(1)));
+  const plantUtil6 = cumPlant.map((v,i)=>parseFloat((v/SUM_PLANT_CAP[i]*100).toFixed(1)));
   const pColors4 = plantUtil6.map(p=>p>=60?'#10b981':p>=35?'#f59e0b':'#ef4444');
   const plantNames = ['พัทยา','นาวัง','หนองปรือ','ปทุมธานี'];
   const prodColors6=['#3b82f6','#f97316','#a855f7','#10b981','#ef4444','#eab308','#06b6d4'];
@@ -789,7 +801,7 @@ function renderAll() {
   chartInstances['ca1'] = new Chart(document.getElementById('ca1'),{
     type:'bar',
     data:{labels:PRODS,datasets:[
-      {label:`กำลังผลิตเต็มที่ (${NM} เดือน)`,data:CAP_PROD.map(c=>c*NM),backgroundColor:'rgba(0,0,0,0.06)',borderColor:'rgba(0,0,0,0.15)',borderWidth:1,borderRadius:4},
+      {label:`กำลังผลิตเต็มที่ (${NM} เดือน)`,data:SUM_CAP_PROD,backgroundColor:'rgba(0,0,0,0.06)',borderColor:'rgba(0,0,0,0.15)',borderWidth:1,borderRadius:4},
       {label:'ผลิตจริงรวม',data:cumProd,backgroundColor:PROD_COLORS.map(c=>c+'aa'),borderColor:PROD_COLORS,borderWidth:1.5,borderRadius:4}
     ]},
     options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
@@ -837,7 +849,7 @@ function renderAll() {
     type:'bar',
     data:{labels:PRODS,datasets:[
       {label:'ผลิตจริงรวม',data:cumProd,backgroundColor:PROD_COLORS.map(c=>c+'99'),borderColor:PROD_COLORS,borderWidth:1,borderRadius:3,stack:'s'},
-      {label:'Capacity เหลือ',data:CAP_PROD.map((c,i)=>Math.max(0,c*NM-cumProd[i])),backgroundColor:'rgba(0,0,0,0.04)',borderColor:'rgba(0,0,0,0.12)',borderWidth:1,borderRadius:3,stack:'s'}
+      {label:'Capacity เหลือ',data:SUM_CAP_PROD.map((c,i)=>Math.max(0,c-cumProd[i])),backgroundColor:'rgba(0,0,0,0.04)',borderColor:'rgba(0,0,0,0.12)',borderWidth:1,borderRadius:3,stack:'s'}
     ]},
     options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
       plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:11}}},tooltip:{...tip,callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.x.toLocaleString()} คิว`}}},
@@ -869,7 +881,7 @@ function renderAll() {
   chartInstances['ca8'] = new Chart(document.getElementById('ca8'),{
     type:'line',
     data:{labels:MONTHS,datasets:PRODS.map((p,pi)=>({
-      label:p,data:ACT_PROD.map((mo)=>parseFloat((mo[pi]/CAP_PROD[pi]*100).toFixed(1))),
+      label:p,data:ACT_PROD.map((mo,m)=>parseFloat((mo[pi]/CAP_PROD_BY_M[m][pi]*100).toFixed(1))),
       borderColor:prodColors6[pi],backgroundColor:prodColors6[pi]+'15',borderWidth:2,
       pointRadius:4,pointBackgroundColor:prodColors6[pi],pointBorderColor:'#ffffff',pointBorderWidth:1.5,
       tension:0.35,fill:false,borderDash:dashPatterns[pi]
@@ -917,7 +929,7 @@ function renderAll() {
   if (tb && !tb.innerHTML) {
     tb.innerHTML = TABLE_ROWS[0].map((row, ri) => {
       const label = row[0];
-      const capN = row[1] * NM;
+      const capN = TABLE_ROWS.reduce((s,mo)=>s+mo[ri][1],0);
       const act = Math.round(TABLE_ROWS.reduce((s,mo)=>s+mo[ri][2],0)*100)/100;
       const pct = Math.round(act/capN*100);
       const col = pct>=80?'#10b981':pct>=50?'#3b82f6':pct>=30?'#f59e0b':'#ef4444';
@@ -937,19 +949,19 @@ function renderAll() {
   const insAll = document.getElementById('ins-all');
   if (insAll && !insAll.innerHTML) {
     const totalAll = Math.round(TOTAL_ACT.reduce((a,b)=>a+b,0)*100)/100;
-    const avgUtil = (totalAll/(TOTAL_CAP*NM)*100).toFixed(1);
+    const avgUtil = (totalAll/SUM_TOTAL_CAP*100).toFixed(1);
     const bestMonthIdx = TOTAL_ACT.indexOf(Math.max(...TOTAL_ACT));
     const worstMonthIdx = TOTAL_ACT.indexOf(Math.min(...TOTAL_ACT));
     const bestPlantIdx = cumPlant.indexOf(Math.max(...cumPlant));
     const bestProdIdx = cumProdPcts.indexOf(Math.max(...cumProdPcts));
     const worstProdIdx = cumProdPcts.indexOf(Math.min(...cumProdPcts));
     const items = [
-      {c:'#3b82f6',icon:'📊',title:`ภาพรวม ${NM} เดือน — ${totalAll.toLocaleString()} คิว`,body:`Utilization เฉลี่ย ${avgUtil}% จากกำลังผลิตรวม ${(TOTAL_CAP*NM).toLocaleString()} คิว มีกำลังเหลืออีก ${((TOTAL_CAP*NM)-totalAll).toLocaleString()} คิว`},
-      {c:'#10b981',icon:'🏆',title:`${MONTHS[bestMonthIdx]} — เดือนที่ผลิตสูงสุด`,body:`${TOTAL_ACT[bestMonthIdx].toLocaleString()} คิว คิดเป็น ${(TOTAL_ACT[bestMonthIdx]/TOTAL_CAP*100).toFixed(1)}% Utilization สูงสุดในรอบ ${NM} เดือน`},
+      {c:'#3b82f6',icon:'📊',title:`ภาพรวม ${NM} เดือน — ${totalAll.toLocaleString()} คิว`,body:`Utilization เฉลี่ย ${avgUtil}% จากกำลังผลิตรวม ${SUM_TOTAL_CAP.toLocaleString()} คิว มีกำลังเหลืออีก ${(Math.round((SUM_TOTAL_CAP-totalAll)*100)/100).toLocaleString()} คิว`},
+      {c:'#10b981',icon:'🏆',title:`${MONTHS[bestMonthIdx]} — เดือนที่ผลิตสูงสุด`,body:`${TOTAL_ACT[bestMonthIdx].toLocaleString()} คิว คิดเป็น ${(TOTAL_ACT[bestMonthIdx]/TOTAL_CAP_BY_M[bestMonthIdx]*100).toFixed(1)}% Utilization สูงสุดในรอบ ${NM} เดือน`},
       {c:'#ef4444',icon:'📉',title:`${MONTHS[worstMonthIdx]} — เดือนที่ผลิตต่ำสุด`,body:`${TOTAL_ACT[worstMonthIdx].toLocaleString()} คิว ต่างจากเดือนสูงสุด ${(Math.round((TOTAL_ACT[bestMonthIdx]-TOTAL_ACT[worstMonthIdx])*100)/100).toLocaleString()} คิว`},
       {c:'#f59e0b',icon:'🏭',title:`${plantNames[bestPlantIdx]} — โรงงานผลิตสูงสุด`,body:`รวม ${cumPlant[bestPlantIdx].toLocaleString()} คิว คิดเป็น ${plantUtil6[bestPlantIdx]}% Utilization เฉลี่ย`},
-      {c:'#8b5cf6',icon:'⚡',title:`${PRODS[bestProdIdx]} — สินค้า Util สูงสุด`,body:`Utilization เฉลี่ย ${cumProdPcts[bestProdIdx]}% ผลิตรวม ${cumProd[bestProdIdx].toLocaleString()} คิว จากกำลัง ${(CAP_PROD[bestProdIdx]*NM).toLocaleString()} คิว`},
-      {c:'#14b8a6',icon:'💡',title:`${PRODS[worstProdIdx]} — โอกาสเพิ่มกำลังผลิต`,body:`Utilization เฉลี่ยเพียง ${cumProdPcts[worstProdIdx]}% ยังมีกำลังเหลืออีก ${(CAP_PROD[worstProdIdx]*NM-cumProd[worstProdIdx]).toLocaleString()} คิว ควรพิจารณาเพิ่มคำสั่งซื้อ`},
+      {c:'#8b5cf6',icon:'⚡',title:`${PRODS[bestProdIdx]} — สินค้า Util สูงสุด`,body:`Utilization เฉลี่ย ${cumProdPcts[bestProdIdx]}% ผลิตรวม ${cumProd[bestProdIdx].toLocaleString()} คิว จากกำลัง ${SUM_CAP_PROD[bestProdIdx].toLocaleString()} คิว`},
+      {c:'#14b8a6',icon:'💡',title:`${PRODS[worstProdIdx]} — โอกาสเพิ่มกำลังผลิต`,body:`Utilization เฉลี่ยเพียง ${cumProdPcts[worstProdIdx]}% ยังมีกำลังเหลืออีก ${(Math.round((SUM_CAP_PROD[worstProdIdx]-cumProd[worstProdIdx])*100)/100).toLocaleString()} คิว ควรพิจารณาเพิ่มคำสั่งซื้อ`},
     ];
     insAll.innerHTML = items.map(ins=>`
       <div class="ins-card" style="--c:${ins.c}">
